@@ -7,7 +7,6 @@ const connectDatabase = async () => {
       //useUnifiedTopogy: true,
       //useNewUrlParser: true,
     });
-    // console.log(conn);
     console.log(`Successfully connected to Mongoose... ${conn.connection.host}`);
   } catch (error) {
     console.error(`Error when connect DB: ${error.message}`);

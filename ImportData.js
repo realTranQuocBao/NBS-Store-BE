@@ -12,7 +12,7 @@ ImportData.post(
   expressAsyncHandler(async (req, res) => {
     await User.remove({});
     const importUser = await User.insertMany(users);
-    res.render({ importUser });
+    res.send({ importUser });
   })
 );
 
@@ -20,8 +20,8 @@ ImportData.post(
   "/product",
   expressAsyncHandler(async (req, res) => {
     await Product.remove({});
-    const importProducts = await User.insertMany(products);
-    res.render({ importProducts });
+    const importProducts = await Product.insertMany(products);
+    res.send({ importProducts });
   })
 );
 
