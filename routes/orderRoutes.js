@@ -5,10 +5,10 @@ import Order from "./../models/OrderModel.js";
 
 const orderRouter = express.Router();
 
+// CRUD
 /**
- * CREATE ORDER
+ * Create: CREATE ORDER
  */
-
 orderRouter.post(
   "/",
   protect,
@@ -44,7 +44,7 @@ orderRouter.post(
 );
 
 /**
- * ADMIN GET ALL ORDERS
+ * Read: ADMIN GET ALL ORDERS
  */
 orderRouter.get(
   "/all",
@@ -59,7 +59,7 @@ orderRouter.get(
 );
 
 /**
- * USER LOGIN ORDERS
+ * Read: USER LOGIN ORDERS
  */
 orderRouter.get(
   "/",
@@ -71,7 +71,7 @@ orderRouter.get(
 );
 
 /**
- * GET ORDER BY ID
+ * Read: GET ORDER BY ID
  */
 orderRouter.get(
   "/:id",
@@ -91,7 +91,7 @@ orderRouter.get(
 );
 
 /**
- * ORDER IS PAID
+ * Update: ORDER IS PAID
  */
 orderRouter.patch(
   "/:id/pay",
@@ -117,7 +117,7 @@ orderRouter.patch(
 );
 
 /**
- * ORDER IS DELIVERED
+ * Update: ORDER IS DELIVERED
  */
 orderRouter.patch(
   "/:id/delivered",
@@ -136,5 +136,10 @@ orderRouter.patch(
     }
   })
 );
+
+/**
+ * Delete: ...
+ * 
+ */
 
 export default orderRouter;
