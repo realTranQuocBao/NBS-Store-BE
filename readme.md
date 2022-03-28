@@ -1,7 +1,7 @@
 # Setup backend
 ```javascript
 npm init
-npm i bcryptjs dotenv express express-async-handler jsonwebtoken mongoose morgan
+npm i bcryptjs dotenv express express-async-handler jsonwebtoken mongoose morgan swagger-ui-express
 npm i --dev concurrently nodemon
 ```
 # Note
