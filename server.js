@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUiExpress from "swagger-ui-express";
 import connectDatabase from "./config/mongodb.js";
 import ImportData from "./ImportData.js";
 import {
@@ -9,21 +11,64 @@ import {
 import orderRouter from "./routes/orderRoutes.js";
 import productRouter from "./routes/productRoutes.js";
 import userRouter from "./routes/userRoutes.js";
+// import swaggerDocument from "./config/swagger.json";
 
 dotenv.config();
 connectDatabase();
 const app = express();
+app.use(express.static("public"));
 app.use(express.json());
+
 
 // api v1.0
 //handle route for api
 app.use("/api/v1/import", ImportData);
-app.use("/api/v1/orders", orderRouter);
-app.use("/api/v1/products", productRouter);
-app.use("/api/v1/users", userRouter);
+app.use("/api/v1/order", orderRouter);
+app.use("/api/v1/product", productRouter);
+app.use("/api/v1/user", userRouter);
 app.use("/api/v1/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
+
+const options = {
+  // swaggerOptions: {
+  //   url: '/swagger/v1/swagger.json'
+  // },
+  definition: {
+    info: {
+      openapi: "3.0.1",
+      title: "npsstore",
+      version: "1.0",
+      description: "03/29/2022 00:00:01",
+      license: "MIT",
+    },
+  },
+
+  apis: [
+    "./routes/orderRoutes.js",
+    "./routes/productRoutes.js",
+    "./routes/userRoutes.js",
+  ],
+};
+
+/**
+ * for swagger ui express
+ */
+// app.use(
+//   "/thisisnbsstoreswagger",
+//   swaggerUiExpress.serve,
+//   swaggerUiExpress.setup(null, options)
+// );
+/**
+ * for swagger jsdoc
+ */
+app.use(
+  "/thisisnbsstoreswagger",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup(swaggerJsdoc(options))
+);
+
+
 
 app.get("/", (req, res) => {
   res.send("Alooo");
