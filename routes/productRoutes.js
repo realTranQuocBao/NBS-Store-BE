@@ -10,7 +10,7 @@ const productRouter = express.Router();
 // CRUD
 /**
  * Create: CREATE A NEW PRODUCT
- *
+ * SWAGGER SETUP: no
  */
 productRouter.post("/", protect, admin, async (req, res) => {
   const { name, price, description, image, countInStock } = req.body;
@@ -40,11 +40,12 @@ productRouter.post("/", protect, admin, async (req, res) => {
 /**
  * Read: GET ALL PRODUCTS
  * (have filter)
+ * SWAGGER SETUP: ok
  */
 productRouter.get(
   "/",
   expressAsyncHandler(async (req, res) => {
-    const pageSize = 12; //EDIT HERE
+    const pageSize = Number(req.query.pageSize) || 12; //EDIT HERE
     const page = Number(req.query.pageNumber) || 1;
     const keyword = req.query.keyword
       ? {
@@ -55,6 +56,11 @@ productRouter.get(
         }
       : {}; // TODO: return cannot find product
     const count = await Product.countDocuments({ ...keyword });
+    if(count == 0){
+      res.status(204);
+      throw new Error("No products found for this keyword");
+    }
+    //else
     const products = await Product.find({ ...keyword })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
@@ -66,6 +72,7 @@ productRouter.get(
 /**
  * Read: ADMIN GET ALL PRODUCTS
  * (not search & pegination)
+ * SWAGGER SETUP: no
  */
 productRouter.get(
   "/all",
@@ -80,6 +87,7 @@ productRouter.get(
 /**
  * Read: GET A PRODUCT
  * (by Id)
+ * SWAGGER SETUP: no
  */
 productRouter.get(
   "/:id",
@@ -96,7 +104,7 @@ productRouter.get(
 
 /**
  * Update: REVIEW A PRODUCT
- *
+ * SWAGGER SETUP: no
  */
 productRouter.post(
   "/:id/review",
@@ -136,7 +144,7 @@ productRouter.post(
 
 /**
  * Update: UPDATE A PRODUCT
- *
+ * SWAGGER SETUP: no
  */
 productRouter.put(
   "/:id",
@@ -162,7 +170,7 @@ productRouter.put(
 
 /**
  * Delete: DELETE A PRODUCT
- *
+ * SWAGGER SETUP: no
  */
 productRouter.delete(
   "/:id",

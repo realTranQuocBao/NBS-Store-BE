@@ -31,37 +31,18 @@ app.use("/api/v1/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
 
-const options = {
-  // swaggerOptions: {
-  //   url: '/swagger/v1/swagger.json'
-  // },
-  definition: {
-    info: {
-      openapi: "3.0.1",
-      title: "npsstore",
-      version: "1.0",
-      description: "03/29/2022 00:00:01",
-      license: "MIT",
-    },
-  },
-
-  apis: [
-    "./routes/orderRoutes.js",
-    "./routes/productRoutes.js",
-    "./routes/userRoutes.js",
-  ],
-};
-
 /**
- * for swagger ui express
+ * swaggerDocument2 created by JSON file
  */
-// app.use(
-//   "/thisisnbsstoreswagger",
-//   swaggerUiExpress.serve,
-//   swaggerUiExpress.setup(null, options)
-// );
-/**
- * for swagger jsdoc
+// const options = {
+//   swaggerOptions: {
+//     url: '/swagger/v1/swagger_copy.json'
+//   },
+// };
+// const swaggerDocument2 = [null, options];  //use: ...swaggerDocument2
+
+/**F
+ * for swagger ui express + YAML file
  */
 app.use(
   "/thisisnbsstoreswagger",

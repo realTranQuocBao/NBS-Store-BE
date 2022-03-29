@@ -1,33 +1,98 @@
 openapi: 3.0.1
 info:
+  title: "npsstore API"
   description: This is a Backend API of NBSStore
   version: "1.0.0"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
+  termsOfService: "http://quocbaoit.com/terms/"
   contact:
-    email: "apiteam@swagger.io"
-  license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
+    email: "NBSstoreProject@quocbaoit.com"
 tags:
-- name: "pet"
-  description: "Everything about your Pets"
+- name: Orther
+  description: "Access to NBSstore orders"
   externalDocs:
     description: "Find out more"
-    url: "http://swagger.io"
-- name: "store"
-  description: "Access to Petstore orders"
-- name: "user"
+    url: "http://fb.quocbaoit.com"
+- name: "Product"
+  description: "Everything about our products"
+- name: "User"
   description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://swagger.io"
 schemes:
 - "https"
 - "http"
 paths:
+  /api/v1/product:
+    get:
+      description: Get a part of products to show on shop client
+      summary: Get a part of products to show on shop client
+      tags:
+        - Product
+      parameters:
+        - in: query
+          name: pageSize
+          required: false
+          type: Number
+          description: Number of products in 1 page
+        - in: query
+          name: pageNumber
+          required: false
+          type: Number
+          description: Page number
+        - in: query
+          name: keyword
+          required: false
+          type: String
+          description: Keyword of product name to find in DB 
+      responses:
+        200:
+          description: Success
+        204:
+          description: No products found for this keyword
+  
+  /api/v1/product/all:
+    get:
+      summary: Return all products of store
+      description: This api requires authorization with token JWT
+      tags:
+        - Product
+      security:
+        - brarerAuth: []
+      responses:
+        200:
+          description: Success
+
+  /api/v1/user/login:
+    post:
+      summary: Logs user into the system
+      tags:
+        - User
+      requestBody:
+        description: Payload to login
+        summrary: Payload to login
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  nullable: true
+                additionalProperties: false
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+
+# REFERENCE_FROM_HERE
   /pet:
     post:
       tags:
@@ -698,3 +763,18 @@ definitions:
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"
+# REFERENCE_TO_HERE
+
+components:
+  schema:
+
+  # 1) Define the security scheme type (HTTP bearer)
+  securitySchemes:
+    brarerAuth: # arbitrary name for the security scheme
+      type: apiKey
+      description: "<i>JWT Authorization header using the Bearer scheme.</i> <b>Example</b>: <i><u>Bearer 12345abcdef</u></i>"
+      in: header          # can be "header", "query" or "cookie"
+      name: Authorization # name of the header, query parameter or cookie
+# 2) Apply the security globally to all operations
+security:
+  - bearerAuth: [] # use the same name as above
