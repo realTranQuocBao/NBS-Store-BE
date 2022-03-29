@@ -27,8 +27,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.2.8",
     "morgan": "^1.10.0",
-    "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.3.0"
+    "swagger-ui-express": "^4.3.0",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "concurrently": "^7.0.0",

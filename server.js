@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUiExpress from "swagger-ui-express";
+import YAML from "yamljs";
 import connectDatabase from "./config/mongodb.js";
 import ImportData from "./ImportData.js";
 import {
@@ -11,14 +11,15 @@ import {
 import orderRouter from "./routes/orderRoutes.js";
 import productRouter from "./routes/productRoutes.js";
 import userRouter from "./routes/userRoutes.js";
+// import swaggerJsdoc from "swagger-jsdoc";
 // import swaggerDocument from "./config/swagger.json";
 
 dotenv.config();
 connectDatabase();
 const app = express();
+const swaggerDocument = YAML.load('./config/swagger.yaml')
 app.use(express.static("public"));
 app.use(express.json());
-
 
 // api v1.0
 //handle route for api
@@ -65,10 +66,8 @@ const options = {
 app.use(
   "/thisisnbsstoreswagger",
   swaggerUiExpress.serve,
-  swaggerUiExpress.setup(swaggerJsdoc(options))
+  swaggerUiExpress.setup(swaggerDocument)
 );
-
-
 
 app.get("/", (req, res) => {
   res.send("Alooo");

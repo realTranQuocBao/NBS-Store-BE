@@ -7,27 +7,6 @@ import User from "../models/UserModel.js";
 const userRouter = express.Router();
 
 
-/**
- * @openapi
- * /api/v1/user/login:
- *  post:
- *    requestBody:
- *      description: Infor to login
- *      content:
- *        'application/json':
- *          schema:
- *            type: object
- *            properties:
- *              username:
- *                type: string
- *              password:
- *                type: string
- *      example:
- *    responses:
- *      200:
- *        description: Success
- *
- */
 userRouter.post(
   "/login",
   expressAsyncHandler(async (req, res) => {
