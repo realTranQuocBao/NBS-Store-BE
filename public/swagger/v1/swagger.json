@@ -1,0 +1,17 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "npsstore",
+        "description": "03/29/2022 00:00:01",
+        "version": "1.0"
+    },
+    "path": {
+        "/api/v1/product": {
+            "get": {
+                "tags": [
+                    "PRODUCT"
+                ]
+            }
+        }
+    }
+}

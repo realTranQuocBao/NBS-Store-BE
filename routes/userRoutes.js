@@ -8,6 +8,7 @@ const userRouter = express.Router();
 
 /**
  * LOGIN
+ * SWAGGER SETUP: no
  */
 userRouter.post(
   "/login",
@@ -32,6 +33,7 @@ userRouter.post(
 
 /**
  * REGISTER
+ * SWAGGER SETUP: no
  */
 userRouter.post(
   "/",
@@ -65,6 +67,7 @@ userRouter.post(
 
 /**
  * PROFILE
+ * SWAGGER SETUP: no
  */
 userRouter.get(
   "/profile",
@@ -88,6 +91,7 @@ userRouter.get(
 
 /**
  * UPDATE PROFILE
+ * SWAGGER SETUP: no
  */
 userRouter.put("/profile", protect, async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -113,7 +117,8 @@ userRouter.put("/profile", protect, async (req, res) => {
 });
 
 /**
- * GET ALL USER by ADMIN
+ * GET ALL USERS by ADMIN
+ * SWAGGER SETUP: no
  */
 userRouter.get(
   "/",
