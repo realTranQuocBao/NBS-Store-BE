@@ -25,38 +25,9 @@ const swaggerDocument = YAML.load('./config/swagger.yaml')
 app.use(express.static("public"));
 app.use(express.json());
 
-// api v1.0
-//handle route for api
-app.use("/api/v1/import", ImportData);
-app.use("/api/v1/order", orderRouter);
-app.use("/api/v1/product", productRouter);
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/config/paypal", (req, res) => {
-  res.send(process.env.PAYPAL_CLIENT_ID);
-});
-
-/**
- * swaggerDocument2 created by JSON file
- */
-// const options = {
-//   swaggerOptions: {
-//     url: '/swagger/v1/swagger_copy.json'
-//   },
-// };
-// const swaggerDocument2 = [null, options];  //use: ...swaggerDocument2
-
-/**F
- * for swagger ui express + YAML file
- */
-app.use(
-  "/thisisnbsstoreswagger",
-  swaggerUiExpress.serve,
-  swaggerUiExpress.setup(swaggerDocument)
-);
-
-app.get("/", (req, res) => {
-  res.send("Alooo");
-});
+// API
+app.use("/api/v1/import", ImportData)
+app.use("/api/v1/products", productRoute)
 
 // error handle
 app.use(notFound)
