@@ -33,13 +33,13 @@ userRouter.post(
 
 /**
  * REGISTER
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 userRouter.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
-    const isExistingUser = User.find({ email });
+    const isExistingUser = await User.findOne({ email });
     if (isExistingUser) {
       res.status(400);
       throw new Error("Email of user already exists");
