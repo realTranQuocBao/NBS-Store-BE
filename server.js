@@ -14,8 +14,8 @@ connectDatabase();
 const app = express();
 
 // API
-app.use("/api/import", ImportData)
-app.use("/api/products", productRoute)
+app.use("/api/v1/import", ImportData)
+app.use("/api/v1/products", productRoute)
 
 // error handle
 app.use(notFound)
