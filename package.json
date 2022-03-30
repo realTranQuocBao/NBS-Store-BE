@@ -17,8 +17,15 @@
     "express": "^4.17.3",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
+<<<<<<< HEAD
     "mongoose": "^6.2.7",
     "morgan": "^1.10.0"
+=======
+    "mongoose": "^6.2.8",
+    "morgan": "^1.10.0",
+    "swagger-ui-express": "^4.3.0",
+    "yamljs": "^0.3.0"
+>>>>>>> 104bc0dc84a92b5bc3617059cb320a3b88efcde1
   },
   "devDependencies": {
     "concurrently": "^7.0.0",
