@@ -91,6 +91,39 @@ paths:
                 items:
                   type: string
 
+  /api/v1/user:
+    post:
+      summary: Create new user account
+      description: This can only be done by the logged in user.
+      tags:
+        - User
+      requestBody:
+        description: description nè
+        summary: summary nè
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  nullable: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
 
 # REFERENCE_FROM_HERE
   /pet:
