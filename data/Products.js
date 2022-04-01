@@ -61,7 +61,7 @@ const products = [
   },
   {
     name: "Shoe sport man addidas",
-    image: "https://i.dlpng.com/static/png/6361339_preview.png",
+    image: "https://pngimg.com/uploads/running_shoes/running_shoes_PNG5827.png",
     description:
       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book",
     price: 490,
@@ -88,6 +88,26 @@ const products = [
     countInStock: 5,
     rating: 4,
     numReviews: 3,
+  },
+  {
+    name: "Shoes by Christopher Thompson",
+    image: "https://cutewallpaper.org/24/shoes-png/running-shoes-png-transparent-image-nike-running-shoes-png-png-image--transparent-png-free-download-on-seekpng.png",
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book",
+    price: 390,
+    countInStock: 5,
+    rating: 4,
+    numReviews: 13,
+  },
+  {
+    name: "Running Shoes sports",
+    image: "https://pngimg.com/uploads/running_shoes/running_shoes_PNG5817.png",
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book",
+    price: 690,
+    countInStock: 5,
+    rating: 4,
+    numReviews: 53,
   },
 ];
 
