@@ -53,17 +53,17 @@ paths:
               schema:
                 type: object
                 properties:
+                  products:
+                    type: array
+                    description: total product in 1 page
+                    items:
+                      $ref: '#/definitions/Product'
                   page:
                     type: number
                     description: current product page number
                   pages:
                     type: number
                     description: total product pages
-                  products:
-                    type: array
-                    description: total product in 1 page
-                    items:
-                      $ref: '#/definitions/Product'
         '204':
           description: No products found for this keyword
           content:
@@ -869,15 +869,15 @@ definitions:
   Product:
     type: object
     properties:
-      reting:
-        type: number
-        description: unknown
       _id:
         type: string
         description: Product ID
       name:
         type: string
         description: Product name
+      image:
+        type: string
+        description: image href pngimg.com
       description:
         type: string
         description: Product description
@@ -898,7 +898,7 @@ definitions:
         description: User reviews
         items:
           type: string
-      _v:
+      __v:
         type: number
         description: unknown
       createdAt:
