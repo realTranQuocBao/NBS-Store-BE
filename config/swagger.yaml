@@ -7,7 +7,7 @@ info:
   contact:
     email: NBSstoreProject@quocbaoit.com
 tags:
-  - name: Orther
+  - name: Order
     description: Access to NBSstore orders
     externalDocs:
       description: Find out more
@@ -48,28 +48,8 @@ paths:
       responses:
         '200':
           description: Success
-          content:
-            application/json: 
-              schema:
-                type: object
-                properties:
-                  page:
-                    type: number
-                    description: current product page number
-                  pages:
-                    type: number
-                    description: total product pages
-                  products:
-                    type: array
-                    description: total product in 1 page
-                    items:
-                      $ref: '#/definitions/Product'
         '204':
           description: No products found for this keyword
-          content:
-            application/json:
-              schema:
-                $ref: '#/definitions/Error'
   /api/v1/product/all:
     get:
       summary: Return all products of store
@@ -81,12 +61,6 @@ paths:
       responses:
         '200':
           description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/definitions/Product'      
   /api/v1/user/login:
     post:
       summary: Logs user into the system
@@ -113,20 +87,9 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/definitions/MyUser'
-                  - type: object
-                    properties:
-                      createdAt:
-                        type: string
-                        description: created timestamp
-                        format: date-time 
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/definitions/Error'
+                type: array
+                items:
+                  type: string
   /api/v1/user:
     post:
       summary: Create new user account
@@ -143,34 +106,23 @@ paths:
               properties:
                 name:
                   type: string
-                  nullable: false
+                  nullable: true
                 email:
                   type: string
-                  nullable: false
+                  nullable: true
                 password:
                   type: string
-                  nullable: false
+                  nullable: true
       responses:
-        '201':
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/definitions/MyUser'
-                  - type: object
-                    properties:
-                      createdAt:
-                        type: string
-                        description: created timestamp
-                        format: date-time
-        '400':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/definitions/Error'
-                
+                type: array
+                items:
+                  type: string
+
 # REFERENCE_FROM_HERE
   /pet:
     post:
@@ -839,76 +791,6 @@ definitions:
         type: "string"
       message:
         type: "string"
-  MyUser:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: user id
-      name:
-        type: string
-        description: username
-      email:
-        type: string
-        description: email
-      isAdmin:
-        type: boolean
-        description: is Admin or not
-      token:
-        type: string
-        description: JWT login token
-  Error:
-    type: object
-    properties:
-      message:
-        type: string
-        description: error message
-      stack:
-        type: string
-        description: error message description
-  Product:
-    type: object
-    properties:
-      reting:
-        type: number
-        description: unknown
-      _id:
-        type: string
-        description: Product ID
-      name:
-        type: string
-        description: Product name
-      description:
-        type: string
-        description: Product description
-      rating:
-        type: number
-        description: User ratings (5-stars rating)
-      numReviews:
-        type: number
-        description: Number of reviews
-      price:
-        type: number
-        description: Product price
-      countInStock:
-        type: number
-        description: Total amount of a product available
-      reviews:
-        type: array
-        description: User reviews
-        items:
-          type: string
-      _v:
-        type: number
-        description: unknown
-      createdAt:
-        type: string
-        description: The date and time when this record is created
-        format: date-time
-      updatedAt:
-        type: string
-        description: The date and time when this record is updated
-        format: date-time
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"
