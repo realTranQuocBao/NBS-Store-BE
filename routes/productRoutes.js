@@ -28,7 +28,7 @@ productRouter.post("/", protect, admin, async (req, res) => {
       user: req.user._id,
     });
     if (newProduct) {
-      const createdProduct = await productRouter.save();
+      const createdProduct = await newProduct.save();
       res.status(201).json(createdProduct);
     } else {
       res.status(400);
@@ -127,9 +127,9 @@ productRouter.post(
         comment,
         user: req.user._id,
       };
-      product.review.push(review);
-      product.numReview = product.review.length;
-      product.rating = product.review.reduce(
+      product.reviews.push(review);
+      product.numReview = product.reviews.length;
+      product.rating = product.reviews.reduce(
         (previousValue, curentReview) => curentReview.rating + previousValue,
         0
       );
