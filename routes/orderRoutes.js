@@ -22,6 +22,7 @@ orderRouter.post(
       shippingPrice,
       totalPrice,
     } = req.body;
+
     if (orderItems && orderItems.length === 0) {
       res.status(400);
       throw new Error("No order items");
@@ -37,8 +38,9 @@ orderRouter.post(
         shippingPrice,
         totalPrice,
       });
+
       const createOrder = await order.save();
-      res.status(2001).json(createOrder);
+      res.status(201).json(createOrder);
     }
   })
 );
