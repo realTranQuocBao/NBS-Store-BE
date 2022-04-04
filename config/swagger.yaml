@@ -1,24 +1,24 @@
 openapi: 3.0.1
 info:
-  title: "npsstore API"
+  title: npsstore API
   description: This is a Backend API of NBSStore
-  version: "1.0.0"
-  termsOfService: "http://quocbaoit.com/terms/"
+  version: 1.0.0
+  termsOfService: http://quocbaoit.com/terms/
   contact:
-    email: "NBSstoreProject@quocbaoit.com"
+    email: NBSstoreProject@quocbaoit.com
 tags:
-- name: Orther
-  description: "Access to NBSstore orders"
-  externalDocs:
-    description: "Find out more"
-    url: "http://fb.quocbaoit.com"
-- name: "Product"
-  description: "Everything about our products"
-- name: "User"
-  description: "Operations about user"
+  - name: Order
+    description: Access to NBSstore orders
+    externalDocs:
+      description: Find out more
+      url: http://fb.quocbaoit.com
+  - name: Product
+    description: Everything about our products
+  - name: User
+    description: Operations about user
 schemes:
-- "https"
-- "http"
+  - https
+  - http
 paths:
   /api/v1/product:
     get:
@@ -30,24 +30,26 @@ paths:
         - in: query
           name: pageSize
           required: false
-          type: Number
+          schema:
+            type: number
           description: Number of products in 1 page
         - in: query
           name: pageNumber
           required: false
-          type: Number
+          schema:
+            type: number
           description: Page number
         - in: query
           name: keyword
           required: false
-          type: String
-          description: Keyword of product name to find in DB 
+          schema:
+            type: string
+          description: Keyword of product name to find in DB
       responses:
-        200:
+        '200':
           description: Success
-        204:
+        '204':
           description: No products found for this keyword
-  
   /api/v1/product/all:
     get:
       summary: Return all products of store
@@ -55,11 +57,10 @@ paths:
       tags:
         - Product
       security:
-        - brarerAuth: []
+        - bearerAuth: []
       responses:
-        200:
+        '200':
           description: Success
-
   /api/v1/user/login:
     post:
       summary: Logs user into the system
@@ -67,7 +68,6 @@ paths:
         - User
       requestBody:
         description: Payload to login
-        summrary: Payload to login
         required: true
         content:
           application/json:
@@ -80,9 +80,9 @@ paths:
                 password:
                   type: string
                   nullable: true
-                additionalProperties: false
+              additionalProperties: false
       responses:
-        200:
+        '200':
           description: Success
           content:
             application/json:
@@ -90,7 +90,6 @@ paths:
                 type: array
                 items:
                   type: string
-
   /api/v1/user:
     post:
       summary: Create new user account
@@ -99,7 +98,6 @@ paths:
         - User
       requestBody:
         description: description nè
-        summary: summary nè
         required: true
         content:
           application/json:
@@ -116,7 +114,7 @@ paths:
                   type: string
                   nullable: true
       responses:
-        200:
+        '200':
           description: Success
           content:
             application/json:
@@ -803,7 +801,7 @@ components:
 
   # 1) Define the security scheme type (HTTP bearer)
   securitySchemes:
-    brarerAuth: # arbitrary name for the security scheme
+    bearerAuth: # arbitrary name for the security scheme
       type: apiKey
       description: "<i>JWT Authorization header using the Bearer scheme.</i> <b>Example</b>: <i><u>Bearer 12345abcdef</u></i>"
       in: header          # can be "header", "query" or "cookie"
