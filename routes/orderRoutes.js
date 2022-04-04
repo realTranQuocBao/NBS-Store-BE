@@ -38,7 +38,7 @@ orderRouter.post(
         totalPrice,
       });
       const createOrder = await order.save();
-      res.status(2001).json(createOrder);
+      res.status(201).json(createOrder);
     }
   })
 );
