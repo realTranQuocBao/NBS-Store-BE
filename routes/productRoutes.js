@@ -127,12 +127,11 @@ productRouter.post(
         comment,
         user: req.user._id,
       };
-      product.review.push(review);
-      product.numReview = product.review.length;
-      product.rating = product.review.reduce(
-        (previousValue, curentReview) => curentReview.rating + previousValue,
-        0
-      );
+      product.reviews.push(review);
+      product.numReviews = product.reviews.length;
+      product.rating =
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        product.reviews.length;
       await product.save();
       res.status(201).json({ message: "Added review" });
     } else {
