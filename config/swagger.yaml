@@ -7,7 +7,7 @@ info:
   contact:
     email: NBSstoreProject@quocbaoit.com
 tags:
-  - name: Orther
+  - name: Order
     description: Access to NBSstore orders
     externalDocs:
       description: Find out more
@@ -114,8 +114,8 @@ paths:
                   $ref: '#/definitions/Product'
   /api/v1/product/{id}: #500 Undocumented Error: Internal Server Error, wrong id could lead this eror due to server cannot cast it properly 
     get: 
-      summary: Get matched product with given id
-      description: Get matched product with given id
+      summary: Get matched product with given id (product detail)
+      description: Get matched product with given id (product detail)
       tags:
         - Product
       parameters:
