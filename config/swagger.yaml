@@ -7,7 +7,7 @@ info:
   contact:
     email: NBSstoreProject@quocbaoit.com
 tags:
-  - name: Order
+  - name: Orther
     description: Access to NBSstore orders
     externalDocs:
       description: Find out more
@@ -20,7 +20,32 @@ schemes:
   - https
   - http
 paths:
-  /api/v1/product:
+  /api/v1/product: 
+    post: #productRouter.save is not a function, fix done
+      description: Create a new product
+      summary: Create a new product
+      tags:
+        - Product
+      requestBody:
+        description: lorem ipsum
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductForm'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Product'
+        '400':
+          description: lorem ipsum
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
     get:
       description: Get a part of products to show on shop client
       summary: Get a part of products to show on shop client
@@ -48,8 +73,28 @@ paths:
       responses:
         '200':
           description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: number
+                    description: current product page number
+                  pages:
+                    type: number
+                    description: total product pages
+                  products:
+                    type: array
+                    description: total product in 1 page
+                    items:
+                      $ref: '#/definitions/Product'
         '204':
           description: No products found for this keyword
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /api/v1/product/all:
     get:
       summary: Return all products of store
@@ -61,6 +106,151 @@ paths:
       responses:
         '200':
           description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/Product'
+  /api/v1/product/{id}: #500 Undocumented Error: Internal Server Error, wrong id could lead this eror due to server cannot cast it properly 
+    get: 
+      summary: Get matched product with given id
+      description: Get matched product with given id
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Product'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+    put: 
+      summary: Update existed product
+      description: Update existed product
+      tags:
+        - Product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: lorem ipsum
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductForm'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Product'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+    delete:
+      summary: Delete existed product
+      description: Update existed product
+      tags:
+        - Product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+  /api/v1/product/{id}/review: #Cannot read properties of undefined (reading 'push')
+    post:
+      summary: Review a product
+      description: Review a product
+      security:
+        - bearerAuth: []
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: lorem ipsum
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating: 
+                  type: integer
+                  description: User ratings (5-stars rating) 
+                  minimum: 1
+                  maximum: 5
+                  nullable: false
+                comment:
+                  type: string
+                  description: User reviews (1 review per user)
+                  nullable: false
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+        '404':
+          description: lorem ipsum
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /api/v1/user/login:
     post:
       summary: Logs user into the system
@@ -87,9 +277,20 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                allOf:
+                  - $ref: '#/definitions/MyUser'
+                  - type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        description: created timestamp
+                        format: date-time
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
   /api/v1/user:
     post:
       summary: Create new user account
@@ -98,6 +299,95 @@ paths:
         - User
       requestBody:
         description: description nè
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  nullable: false
+                email:
+                  type: string
+                  nullable: false
+                password:
+                  type: string
+                  nullable: false
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/MyUser'
+        '400':
+          description: lorem ipsum
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+    get:
+      summary: Get all users by admin
+      description: Get all users by admin
+      tags:
+        - User
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/definitions/MyUser'
+                    - type: object
+                      properties:
+                        createdAt:
+                          type: string
+                          description: The date and time when this record is created
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          description: The date and time when this record is updated
+                          format: date-time
+                        _v:
+                          type: number
+                          description: unknown
+                        password:
+                          type: string
+                          description: User password
+  /api/v1/user/profile:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - User
+      description: lorem ipsum
+      summary: lorem ipsum
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/UserProfile' #return id, name, email, isAdmin
+        '400':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - User
+      description: lorem ipsum
+      summary: lorem ipsum
+      requestBody:
+        description: lorem ipsum
         required: true
         content:
           application/json:
@@ -115,13 +405,17 @@ paths:
                   nullable: true
       responses:
         '200':
-          description: Success
+          description: User profile
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/definitions/UserProfile' #return id, name email, isAdmin, token
+        '400':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Error'        
 
 # REFERENCE_FROM_HERE
   /pet:
@@ -791,14 +1085,138 @@ definitions:
         type: "string"
       message:
         type: "string"
+  MyUser:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: user id
+      name:
+        type: string
+        description: username
+      email:
+        type: string
+        description: email
+      isAdmin:
+        type: boolean
+        description: is Admin or not
+      token:
+        type: string
+        description: JWT login token
+  Error:
+    type: object
+    properties:
+      message:
+        type: string
+        description: error message
+      stack:
+        type: string
+        description: error message description
+  Product:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Product ID
+      name:
+        type: string
+        description: Product name
+      image:
+        type: string
+        description: Product image's url
+      description:
+        type: string
+        description: Product description
+      rating:
+        type: number
+        description: User ratings (5-stars rating)
+      numReviews:
+        type: number
+        description: Number of reviews
+      price:
+        type: number
+        description: Product price
+      countInStock:
+        type: number
+        description: Total amount of a product available
+      reviews:
+        type: array
+        description: User reviews
+        items:
+          type: string
+      __v:
+        type: number
+        description: unknown
+      createdAt:
+        type: string
+        description: The date and time when this record is created
+        format: date-time
+      updatedAt:
+        type: string
+        description: The date and time when this record is updated
+        format: date-time
+  UserProfile:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: user id
+      name:
+        type: string
+        description: username
+      email:
+        type: string
+        description: email
+      isAdmin:
+        type: boolean
+        description: is Admin or not
+      createAt:
+        type: string
+        description: The date and time when this record is created
+        format: date-time
+  ProductForm:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Product ID
+      price:
+        type: number
+        description: Product price
+      description:
+        type: string
+        description: Product description
+      image:
+        type: string
+        description: Product image's url
+      countInStock:
+        type: number
+        description: Total amount of a product available
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"
 # REFERENCE_TO_HERE
 
 components:
-  schema:
-
+  schemas:
+    ProductForm:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Product ID
+        price:
+          type: number
+          description: Product price
+        description:
+          type: string
+          description: Product description
+        image:
+          type: string
+          description: Product image's url
+        countInStock:
+          type: number
+          description: Total amount of a product available
   # 1) Define the security scheme type (HTTP bearer)
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
