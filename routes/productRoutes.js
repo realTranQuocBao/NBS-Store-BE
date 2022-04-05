@@ -10,7 +10,7 @@ const productRouter = express.Router();
 // CRUD
 /**
  * Create: CREATE A NEW PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.post("/", protect, admin, async (req, res) => {
   const { name, price, description, image, countInStock } = req.body;
@@ -72,7 +72,7 @@ productRouter.get(
 /**
  * Read: ADMIN GET ALL PRODUCTS
  * (not search & pegination)
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.get(
   "/all",
@@ -85,14 +85,22 @@ productRouter.get(
 );
 
 /**
- * Read: GET A PRODUCT
+ * Read: GET A PRODUCT DETAIL
  * (by Id)
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
+    // console.log("Bảo nè");
+    // let product;
+    // try {
+    //   product = await Product.findById(req.params.id);
+    // } catch (error) {
+    //   console.log("ERRRRRRRRRR",product, error);
+    // }
+    const product = await Product.findById(req.params.id).exec();
+    console.log(product);
     if (product) {
       res.json(product);
     } else {
@@ -104,7 +112,7 @@ productRouter.get(
 
 /**
  * Update: REVIEW A PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.post(
   "/:id/review",
@@ -144,7 +152,7 @@ productRouter.post(
 
 /**
  * Update: UPDATE A PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.put(
   "/:id",
@@ -170,7 +178,7 @@ productRouter.put(
 
 /**
  * Delete: DELETE A PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.delete(
   "/:id",

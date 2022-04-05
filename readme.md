@@ -1,15 +1,14 @@
 # Setup backend
 ```javascript
-npm init
 npm i bcryptjs dotenv express express-async-handler jsonwebtoken mongoose morgan swagger-ui-express yamljs
 npm i --save-dev concurrently nodemon
 ```
 # Note
 | Module            | PORT          | Port  |
 | ----------------- |:-------------:| -----:|
-| BE (API)          | /api/v1/*     | 3000  |
-| FE web (client)   | /*            | 5000  |
-| FE web (admin)    | /admin/*      | 5000  |
+| BE (API)          | /api/v1/*     | 5000  |
+| FE web (client)   | /*            | 3000  |
+| FE web (admin)    | /admin/*      | 3000  |
 
 # .env file
 ```
