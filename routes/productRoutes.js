@@ -93,14 +93,17 @@ productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
+    let product;
+    product = await Product.findById(req.params.id).exec();
     // let product;
+    // console.log("new", product);
     // try {
-    //   product = await Product.findById(req.params.id);
+    //   product = await Product.findById(req.params.id).exec();
     // } catch (error) {
-    //   console.log("ERRRRRRRRRR",product, error);
+    //   console.log("err", product);
+    //   res.status(404);
+    //   throw new Error("Product not Found");
     // }
-    const product = await Product.findById(req.params.id).exec();
-    console.log(product);
     if (product) {
       res.json(product);
     } else {
@@ -119,7 +122,8 @@ productRouter.post(
   protect,
   expressAsyncHandler(async (req, res) => {
     const { rating, comment } = req.body;
-    const product = await Product.findById(req.params.id);
+    let product;
+    product = await Product.findById(req.params.id);
     if (product) {
       const alreadyReviewed = product.reviews.find(
         (reviewItem) => reviewItem.user.toString() === req.user._id.toString()
@@ -160,7 +164,8 @@ productRouter.put(
   admin,
   expressAsyncHandler(async (req, res) => {
     const { name, price, description, image, countInStock } = req.body;
-    const product = await Product.findById(req.params.id);
+    let product;
+    product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
       product.price = price || product.price;
@@ -185,7 +190,8 @@ productRouter.delete(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
+    let product;
+    product = await Product.findById(req.params.id);
     if (product) {
       await product.remove();
       res.json({ message: "Product has been deleted" });
