@@ -20,8 +20,8 @@ schemes:
   - https
   - http
 paths:
-  /api/v1/product: 
-    post: #productRouter.save is not a function, fix done
+  /api/v1/product:
+    post:
       description: Create a new product
       summary: Create a new product
       tags:
@@ -39,13 +39,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Product'
+                $ref: '#/components/schemas/Product'
         '400':
           description: lorem ipsum
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
     get:
       description: Get a part of products to show on shop client
       summary: Get a part of products to show on shop client
@@ -88,13 +88,13 @@ paths:
                     type: array
                     description: total product in 1 page
                     items:
-                      $ref: '#/definitions/Product'
+                      $ref: '#/components/schemas/Product'
         '204':
           description: No products found for this keyword
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
   /api/v1/product/all:
     get:
       summary: Return all products of store
@@ -111,11 +111,19 @@ paths:
               schema:
                 type: array
                 items:
+<<<<<<< Updated upstream
                   $ref: '#/definitions/Product'
   /api/v1/product/{id}: #500 Undocumented Error: Internal Server Error, wrong id could lead this eror due to server cannot cast it properly 
     get: 
       summary: Get matched product with given id (product detail)
       description: Get matched product with given id (product detail)
+=======
+                  $ref: '#/components/schemas/Product'
+  /api/v1/product/{id}:
+    get:
+      summary: Get matched product with given id
+      description: Get matched product with given id
+>>>>>>> Stashed changes
       tags:
         - Product
       parameters:
@@ -131,14 +139,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Product'
+                $ref: '#/components/schemas/Product'
         '404':
           description: Product not found
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
-    put: 
+                $ref: '#/components/schemas/Error'
+    put:
       summary: Update existed product
       description: Update existed product
       tags:
@@ -165,13 +173,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Product'
+                $ref: '#/components/schemas/Product'
         '404':
           description: Product not found
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
     delete:
       summary: Delete existed product
       description: Update existed product
@@ -201,8 +209,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
-  /api/v1/product/{id}/review: #Cannot read properties of undefined (reading 'push')
+                $ref: '#/components/schemas/Error'
+  /api/v1/product/{id}/review:
     post:
       summary: Review a product
       description: Review a product
@@ -225,9 +233,9 @@ paths:
             schema:
               type: object
               properties:
-                rating: 
+                rating:
                   type: integer
-                  description: User ratings (5-stars rating) 
+                  description: User ratings (5-stars rating)
                   minimum: 1
                   maximum: 5
                   nullable: false
@@ -243,14 +251,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  message: 
+                  message:
                     type: string
         '404':
           description: lorem ipsum
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
   /api/v1/user/login:
     post:
       summary: Logs user into the system
@@ -278,7 +286,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/definitions/MyUser'
+                  - $ref: '#/components/schemas/MyUser'
                   - type: object
                     properties:
                       createdAt:
@@ -290,7 +298,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
   /api/v1/user:
     post:
       summary: Create new user account
@@ -320,13 +328,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/MyUser'
+                $ref: '#/components/schemas/MyUser'
         '400':
           description: lorem ipsum
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
     get:
       summary: Get all users by admin
       description: Get all users by admin
@@ -341,7 +349,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - $ref: '#/definitions/MyUser'
+                    - $ref: '#/components/schemas/MyUser'
                     - type: object
                       properties:
                         createdAt:
@@ -372,13 +380,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/UserProfile' #return id, name, email, isAdmin
+                $ref: '#/components/schemas/UserProfile'
         '400':
           description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'
+                $ref: '#/components/schemas/Error'
     put:
       security:
         - bearerAuth: []
@@ -409,13 +417,41 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/UserProfile' #return id, name email, isAdmin, token
+                $ref: '#/components/schemas/MyUser'
         '400':
           description: User not found
           content:
             application/json:
               schema:
-                $ref: '#/definitions/Error'        
+                $ref: '#/components/schemas/Error'
+  /api/v1/order:
+    post:
+      summary: Create new order
+      description: Create new order
+      tags:
+        - Order
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Order form
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderForm'
+      responses:
+        '400':
+          description: No order items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
 
 # REFERENCE_FROM_HERE
   /pet:
@@ -1085,113 +1121,6 @@ definitions:
         type: "string"
       message:
         type: "string"
-  MyUser:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: user id
-      name:
-        type: string
-        description: username
-      email:
-        type: string
-        description: email
-      isAdmin:
-        type: boolean
-        description: is Admin or not
-      token:
-        type: string
-        description: JWT login token
-  Error:
-    type: object
-    properties:
-      message:
-        type: string
-        description: error message
-      stack:
-        type: string
-        description: error message description
-  Product:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Product ID
-      name:
-        type: string
-        description: Product name
-      image:
-        type: string
-        description: Product image's url
-      description:
-        type: string
-        description: Product description
-      rating:
-        type: number
-        description: User ratings (5-stars rating)
-      numReviews:
-        type: number
-        description: Number of reviews
-      price:
-        type: number
-        description: Product price
-      countInStock:
-        type: number
-        description: Total amount of a product available
-      reviews:
-        type: array
-        description: User reviews
-        items:
-          type: string
-      __v:
-        type: number
-        description: unknown
-      createdAt:
-        type: string
-        description: The date and time when this record is created
-        format: date-time
-      updatedAt:
-        type: string
-        description: The date and time when this record is updated
-        format: date-time
-  UserProfile:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: user id
-      name:
-        type: string
-        description: username
-      email:
-        type: string
-        description: email
-      isAdmin:
-        type: boolean
-        description: is Admin or not
-      createAt:
-        type: string
-        description: The date and time when this record is created
-        format: date-time
-  ProductForm:
-    type: object
-    properties:
-      name:
-        type: string
-        description: Product ID
-      price:
-        type: number
-        description: Product price
-      description:
-        type: string
-        description: Product description
-      image:
-        type: string
-        description: Product image's url
-      countInStock:
-        type: number
-        description: Total amount of a product available
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"
@@ -1199,6 +1128,85 @@ externalDocs:
 
 components:
   schemas:
+    MyUser:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: user id
+        name:
+          type: string
+          description: username
+        email:
+          type: string
+          description: email
+        isAdmin:
+          type: boolean
+          description: is Admin or not
+        token:
+          type: string
+          description: JWT login token
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: error message
+        stack:
+          type: string
+          description: error message description
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Product ID
+        name:
+          type: string
+          description: Product name
+        image:
+          type: string
+          description: Product image's url
+        description:
+          type: string
+          description: Product description
+        reviews:
+          type: array
+          description: User reviews
+          items:
+            $ref: '#/components/schemas/Review'
+        rating:
+          type: number
+          description: User ratings (5-stars rating)
+        numReviews:
+          type: number
+          description: Number of reviews
+        price:
+          type: number
+          description: Product price
+        countInStock:
+          type: number
+          description: Total amount of a product available
+        __v:
+          type: number
+          description: unknown
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+    UserProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: user id
+        name:
+          type: string
+          description: username
+        email:
+          type: string
+          description: email
+        isAdmin:
+          type: boolean
+          description: is Admin or not
     ProductForm:
       type: object
       properties:
@@ -1217,6 +1225,160 @@ components:
         countInStock:
           type: number
           description: Total amount of a product available
+    Timestamp:
+      type: object
+      properties:
+        createAt:
+          type: string
+          description: The date and time when this record is created
+          format: date-time
+        updatedAt:
+          type: string
+          description: The date and time when this record is updated
+          format: date-time
+    Review:
+      type: object
+      properties:
+        name:
+          type: string
+          description: lorem ipsum
+        rating:
+          type: integer
+          description: User ratings (5-stars rating)
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          description: User reviews (1 review per user)
+        user:
+          type: string
+          description: User ID
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+    OrderItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Order item name
+        qty:
+          type: number
+          description: Order item quantity
+        image:
+          type: string
+          description: Order item image's url
+        price:
+          type: number
+          description: Order item price
+        product:
+          type: string
+          description: Order item ID
+    ShippingAddress:
+      type: object
+      properties:
+        address:
+          type: string
+          description: Shipping address
+        city:
+          type: string
+          description: Shipping city
+        postalCode:
+          type: string
+          description: Shipping postal code
+        country:
+          type: string
+          description: Shipping country
+    PaymentResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Payment result ID
+        status:
+          type: string
+          description: Payment status
+        update_time:
+          type: string
+          format: date-time
+        email_address:
+          type: string
+          description: Order email address
+    OrderForm:
+      type: object
+      properties:
+        orderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        shippingAddress:
+          $ref: '#/components/schemas/ShippingAddress'
+        paymentMethod:
+          type: string
+          description: Payment method
+          default: Paypal
+        itemsPrice:
+          type: number
+          description: lorem ipsum
+        taxPrice:
+          type: number
+          description: Tax price
+          default: 0
+        shippingPrice:
+          type: number
+          description: Shipping price
+          default: 0
+        totalPrice:
+          type: number
+          description: Total price
+          default: 0
+    Order:
+      type: object
+      properties:
+        user:
+          type: string
+          description: Ordered user ID
+        orderItems:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/OrderItem'
+              - type: object
+                properties:
+                  _id:
+                    type: string
+                    description: Order item ID
+        shippingAddress:
+          $ref: '#/components/schemas/ShippingAddress'
+        paymentMethod:
+          type: string
+          description: Payment method
+          default: Paypal
+        taxPrice:
+          type: number
+          description: Tax price
+          default: 0
+        shippingPrice:
+          type: number
+          description: Shipping price
+          default: 0
+        totalPrice:
+          type: number
+          description: Total price
+          default: 0     
+        isPaid:
+          type: boolean
+          description: Is paid yet ?
+        isDelivered:
+          type: boolean
+          description: Is deliverd yet ?
+        _id: 
+          type: string
+          description: Order ID
+        timestamp: 
+          $ref: '#/components/schemas/Timestamp'
+        __v: 
+          type: number
+          description: lorem ipsum
   # 1) Define the security scheme type (HTTP bearer)
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
