@@ -27,7 +27,7 @@ paths:
       tags:
         - Product
       requestBody:
-        description: lorem ipsum
+        description: Payload to create a new product
         required: true
         content:
           application/json:
@@ -41,7 +41,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Product'
         '400':
-          description: lorem ipsum
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -95,6 +101,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/product/all:
     get:
       summary: Return all products of store
@@ -112,7 +124,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Product'
-  /api/v1/product/{id}: #500 Undocumented Error: Internal Server Error, wrong id could lead this eror due to server cannot cast it properly 
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/product/{id}:
     get: 
       summary: Get matched product with given id (product detail)
       description: Get matched product with given id (product detail)
@@ -138,6 +156,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     put:
       summary: Update existed product
       description: Update existed product
@@ -153,7 +177,7 @@ paths:
           schema:
             type: string
       requestBody:
-        description: lorem ipsum
+        description: Payload to update product
         required: true
         content:
           application/json:
@@ -168,6 +192,12 @@ paths:
                 $ref: '#/components/schemas/Product'
         '404':
           description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -202,6 +232,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/product/{id}/review:
     post:
       summary: Review a product
@@ -218,7 +254,7 @@ paths:
           schema:
             type: string
       requestBody:
-        description: lorem ipsum
+        description: Payload to review a product
         required: true
         content:
           application/json:
@@ -246,7 +282,19 @@ paths:
                   message:
                     type: string
         '404':
-          description: lorem ipsum
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
@@ -322,7 +370,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/MyUser'
         '400':
-          description: lorem ipsum
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -352,23 +406,29 @@ paths:
                           type: string
                           description: The date and time when this record is updated
                           format: date-time
-                        _v:
+                        __v:
                           type: number
-                          description: unknown
+                          description: Document version key
                         password:
                           type: string
                           description: User password
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/user/profile:
     get:
       security:
         - bearerAuth: []
       tags:
         - User
-      description: lorem ipsum
-      summary: lorem ipsum
+      description: Users get their profile
+      summary: Users get their profile
       responses:
         '200':
-          description: User profile
+          description: Success
           content:
             application/json:
               schema:
@@ -379,15 +439,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     put:
       security:
         - bearerAuth: []
       tags:
         - User
-      description: lorem ipsum
-      summary: lorem ipsum
+      description: Users update their profile
+      summary: Users update their profile
       requestBody:
-        description: lorem ipsum
+        description: Payload to update profile
         required: true
         content:
           application/json:
@@ -405,13 +471,19 @@ paths:
                   nullable: true
       responses:
         '200':
-          description: User profile
+          description: Success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MyUser'
         '400':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -444,6 +516,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     get:
       summary: Users get their orders
       description: Users get their orders
@@ -458,8 +536,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
-        '400':
-          description: No order items
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -527,6 +605,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/order/{id}:
     get:
       summary: Get order by id
@@ -549,8 +633,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
-        '400':
-          description: No order items
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -585,11 +675,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '404':
-          description: Order not found
+          description: Not Found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error' 
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/order/{id}/delivered:
     patch:
       summary: Confirm order is delivered
@@ -620,11 +716,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '404':
-          description: Order not found
+          description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'     
+                $ref: '#/components/schemas/Error'  
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'   
 # REFERENCE_FROM_HERE
   /pet:
     post:
@@ -953,7 +1055,7 @@ paths:
         "400":
           description: "Invalid ID supplied"
         "404":
-          description: "Order not found"
+          description: "Not Found"
     delete:
       tags:
       - "store"
@@ -975,7 +1077,7 @@ paths:
         "400":
           description: "Invalid ID supplied"
         "404":
-          description: "Order not found"
+          description: "Not Found"
   /user:
     post:
       tags:
@@ -1361,7 +1463,7 @@ components:
           description: Total amount of a product available
         __v:
           type: number
-          description: unknown
+          description: Document version key
         timestamp:
           $ref: '#/components/schemas/Timestamp'
     UserProfile:
@@ -1413,7 +1515,7 @@ components:
       properties:
         name:
           type: string
-          description: lorem ipsum
+          description: Reviewed user name
         rating:
           type: integer
           description: User ratings (5-stars rating)
@@ -1490,7 +1592,7 @@ components:
           default: Paypal
         itemsPrice:
           type: number
-          description: lorem ipsum
+          description: Items price
         taxPrice:
           type: number
           description: Tax price
@@ -1550,7 +1652,7 @@ components:
           $ref: '#/components/schemas/Timestamp'
         __v: 
           type: number
-          description: lorem ipsum
+          description: Document version key
     OrderedUser:
       type: object
       properties:
