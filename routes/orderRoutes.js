@@ -55,7 +55,7 @@ orderRouter.get(
   expressAsyncHandler(async (req, res) => {
     const orders = await Order.find({})
       .sort({ _id: -1 })
-      .populate("user", "id name imail");
+      .populate("user", "id name email");
     res.json(orders);
   })
 );
