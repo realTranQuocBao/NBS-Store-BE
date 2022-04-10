@@ -18,3 +18,18 @@ JWT_SECRET=<jwt_secret_key>
 PAYPAL_CLIENT_ID=<bảo cute vl>
 MONGO_URL=<mongo_uri_here>
 ```
+
+# Database tables
+```
+<!-- Origin -->
+product
+user
+order
+<!-- New -->
+producer
+category
+<!-- Future -->
+config (for email)
+slider (for slide on homepage)
+discount
+```
