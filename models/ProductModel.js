@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+// import Category from "./Category";
 
 const reviewSchema = mongoose.Schema(
   {
@@ -39,6 +40,7 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     reviews: [reviewSchema],
+    // category: { Category },
     rating: {
       type: Number,
       required: true,
