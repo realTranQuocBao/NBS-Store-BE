@@ -8,7 +8,7 @@ const userRouter = express.Router();
 
 /**
  * LOGIN
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 userRouter.post(
   "/login",

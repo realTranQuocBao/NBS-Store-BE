@@ -10,7 +10,7 @@ const productRouter = express.Router();
 // CRUD
 /**
  * Create: CREATE A NEW PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.post("/", protect, admin, async (req, res) => {
   const { name, price, description, image, countInStock } = req.body;
@@ -28,7 +28,7 @@ productRouter.post("/", protect, admin, async (req, res) => {
       user: req.user._id,
     });
     if (newProduct) {
-      const createdProduct = await productRouter.save();
+      const createdProduct = await newProduct.save();
       res.status(201).json(createdProduct);
     } else {
       res.status(400);
@@ -49,14 +49,14 @@ productRouter.get(
     const page = Number(req.query.pageNumber) || 1;
     const keyword = req.query.keyword
       ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: "i",
-          },
-        }
+        name: {
+          $regex: req.query.keyword,
+          $options: "i",
+        },
+      }
       : {}; // TODO: return cannot find product
     const count = await Product.countDocuments({ ...keyword });
-    if(count == 0){
+    if (count == 0) {
       res.status(204);
       throw new Error("No products found for this keyword");
     }
@@ -72,7 +72,7 @@ productRouter.get(
 /**
  * Read: ADMIN GET ALL PRODUCTS
  * (not search & pegination)
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.get(
   "/all",
@@ -85,14 +85,25 @@ productRouter.get(
 );
 
 /**
- * Read: GET A PRODUCT
+ * Read: GET A PRODUCT DETAIL
  * (by Id)
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
+    // console.log("Bảo nè");
+    let product;
+    product = await Product.findById(req.params.id).exec();
+    // let product;
+    // console.log("new", product);
+    // try {
+    //   product = await Product.findById(req.params.id).exec();
+    // } catch (error) {
+    //   console.log("err", product);
+    //   res.status(404);
+    //   throw new Error("Product not Found");
+    // }
     if (product) {
       res.json(product);
     } else {
@@ -104,14 +115,15 @@ productRouter.get(
 
 /**
  * Update: REVIEW A PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.post(
   "/:id/review",
   protect,
   expressAsyncHandler(async (req, res) => {
     const { rating, comment } = req.body;
-    const product = await Product.findById(req.params.id);
+    let product;
+    product = await Product.findById(req.params.id);
     if (product) {
       const alreadyReviewed = product.reviews.find(
         (reviewItem) => reviewItem.user.toString() === req.user._id.toString()
@@ -128,10 +140,11 @@ productRouter.post(
         user: req.user._id,
       };
       product.reviews.push(review);
-      product.numReviews = product.reviews.length;
-      product.rating =
-        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-        product.reviews.length;
+      product.numReview = product.reviews.length;
+      product.rating = product.reviews.reduce(
+        (previousValue, curentReview) => curentReview.rating + previousValue,
+        0
+      );
       await product.save();
       res.status(201).json({ message: "Added review" });
     } else {
@@ -143,7 +156,7 @@ productRouter.post(
 
 /**
  * Update: UPDATE A PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.put(
   "/:id",
@@ -151,7 +164,8 @@ productRouter.put(
   admin,
   expressAsyncHandler(async (req, res) => {
     const { name, price, description, image, countInStock } = req.body;
-    const product = await Product.findById(req.params.id);
+    let product;
+    product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
       product.price = price || product.price;
@@ -169,14 +183,15 @@ productRouter.put(
 
 /**
  * Delete: DELETE A PRODUCT
- * SWAGGER SETUP: no
+ * SWAGGER SETUP: ok
  */
 productRouter.delete(
   "/:id",
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
+    let product;
+    product = await Product.findById(req.params.id);
     if (product) {
       await product.remove();
       res.json({ message: "Product has been deleted" });
