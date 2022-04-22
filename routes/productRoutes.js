@@ -1,7 +1,9 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
 import Product from "../models/ProductModel.js";
+import Category from "../models/CategoryModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
+import { searchConstants } from "../constants/searchConstants.js";
 
 const productRouter = express.Router();
 
@@ -42,7 +44,7 @@ productRouter.post("/", protect, admin, async (req, res) => {
  * (have filter)
  * SWAGGER SETUP: ok
  */
-productRouter.get(
+ /* productRouter.get(
   "/",
   expressAsyncHandler(async (req, res) => {
     const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
@@ -67,7 +69,44 @@ productRouter.get(
       .sort({ _id: -1 });
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })
-);
+); */
+
+productRouter.get(
+  "/",
+  expressAsyncHandler(async (req, res) => {
+    const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
+    const page = Number(req.query.pageNumber) || 1;
+    const dateOrder = req.query.dateOrder || 'latest';
+    const priceOrder = req.query.priceOrder || 'desc'; 
+    const keyword = req.query.keyword
+      ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: "i",
+        },
+      }
+      : {}; // TODO: return cannot find product
+    const categoryId = await Category
+    .findOne({ "name": { 
+                          $regex: req.query.category, 
+                          $options: 'i', 
+                      }
+            });
+    const category = categoryId ? { category: categoryId } : {};
+    const count = await Product.countDocuments({ ...keyword, ...category });
+    if (count == 0) {
+      res.status(204);
+      throw new Error("No products found for this keyword");
+    }
+    //else
+    const products = await Product.find({ ...keyword, ...category })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort({ price: searchConstants.price[priceOrder], createdAt: searchConstants.date[dateOrder] })
+      .populate('category', 'name');
+    res.json({ products, page, pages: Math.ceil(count / pageSize) });
+  })
+); 
 
 /**
  * Read: ADMIN GET ALL PRODUCTS

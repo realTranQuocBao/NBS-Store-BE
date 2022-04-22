@@ -40,6 +40,11 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     reviews: [reviewSchema],
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: false,
+      ref: "Category",
+    },
     // category: { Category },
     rating: {
       type: Number,
