@@ -488,6 +488,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/user/CreateOrUpdateAvatar/{userId}:
+    post:
+      summary: Upload/Update Avater for User
+      description: Upload/Update Avatar for User
+      tags:
+        - User
+      parameters:
+        - name: userId
+          in: path
+          description: _id of the user that needs to update the avatar, if you is admin
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                style: form
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrUpdateAvatar'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/order:
     post:
       summary: Create new order
@@ -1402,6 +1446,24 @@ externalDocs:
 
 components:
   schemas:
+    CreateOrUpdateAvatar:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: user id
+        name:
+          type: string
+          description: username
+        email:
+          type: string
+          description: email
+        avatarUrl:
+          type: string
+          description: avatar url
+        isAdmin:
+          type: boolean
+          description: is Admin or not
     MyUser:
       type: object
       properties:
@@ -1414,6 +1476,9 @@ components:
         email:
           type: string
           description: email
+        avatarUrl:
+          type: string
+          description: avatar url
         isAdmin:
           type: boolean
           description: is Admin or not
@@ -1478,6 +1543,9 @@ components:
         email:
           type: string
           description: email
+        avatarUrl:
+          type: string
+          description: avatar url
         isAdmin:
           type: boolean
           description: is Admin or not
