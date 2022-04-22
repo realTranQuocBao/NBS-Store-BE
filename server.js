@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import swaggerUiExpress from "swagger-ui-express";
 import YAML from "yamljs";
+import cors from "cors"
 import connectDatabase from "./config/mongodb.js";
 import ImportData from "./ImportData.js";
 import {
@@ -22,7 +23,7 @@ const app = express();
 const swaggerDocument = YAML.load('./config/swagger.yaml')
 app.use(express.static("public"));
 app.use(express.json());
-
+app.use(cors());
 // api v1.0
 //handle route for api
 app.use("/api/v1/import", ImportData);

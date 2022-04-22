@@ -2,7 +2,12 @@ import express from "express";
 import expressAsyncHandler from "express-async-handler";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import generateToken from "../utils/generateToken.js";
+import resize from "./../utils/resizeImage.js";
 import User from "../models/UserModel.js";
+import { upload } from "./../middleware/UploadMiddleware.js";
+import path from "path";
+import fs from "fs";
+const __dirname = path.resolve();
 
 const userRouter = express.Router();
 
@@ -20,6 +25,7 @@ userRouter.post(
         _id: user._id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl || "./images/user.png",
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
         createdAt: user.createdAt,
@@ -79,6 +85,7 @@ userRouter.get(
         _id: user._id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl || "./images/avatar/default.png",
         isAdmin: user.isAdmin,
         createAt: user.createAt,
       });
@@ -127,6 +134,56 @@ userRouter.get(
   expressAsyncHandler(async (req, res) => {
     const users = await User.find({});
     res.json(users);
+  })
+);
+
+/**
+ * GET ALL USERS by ADMIN
+ * SWAGGER SETUP: no
+ */
+userRouter.post(
+  "/CreateOrUpdateAvatar/:userId",
+  protect,
+  upload.single("file"),
+  expressAsyncHandler(async (req, res) => {
+    let user = await User.findById(req.user._id);
+    if(user.isAdmin && req.params.userId) {
+      user = await User.findById(req.params.userId);
+    }
+    if (user) {
+      //folder path to upload avatar
+      const avatarPath = path.join(__dirname, "/public/images/avatar/");
+      if (!req.file) {
+        res.status(400);
+        throw new Error("No provide an image");
+      }
+      //else
+      const filename = await resize.save(avatarPath, req.file.buffer);
+      // res.json(filename);
+
+      const oldAvatar = user.avatarUrl;
+      user.avatarUrl = `/images/avatar/${filename}`;
+      const updateUser = await user.save();
+
+      //delete old avatar
+      if (oldAvatar != "/images/avatar/default.png") {
+        fs.unlink(path.join(__dirname, "public", oldAvatar), (err) => {
+          if (err) console.log("Delete old avatar have err:", err);
+        });
+      }
+
+      res.json({
+        _id: updateUser._id,
+        name: updateUser.name,
+        email: updateUser.email,
+        avatarUrl: updateUser.avatarUrl,
+        isAdmin: updateUser.isAdmin,
+        createAt: updateUser.createAt,
+      });
+    } else {
+      res.status(400);
+      throw new Error("User not Found");
+    }
   })
 );
 
