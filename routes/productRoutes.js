@@ -3,7 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import Product from "../models/ProductModel.js";
 import Category from "../models/CategoryModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
-import { searchConstants } from "../constants/searchConstants.js";
+import { searchConstants, validateConstants } from "../constants/searchConstants.js";
 
 const productRouter = express.Router();
 
@@ -76,8 +76,8 @@ productRouter.get(
   expressAsyncHandler(async (req, res) => {
     const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
     const page = Number(req.query.pageNumber) || 1;
-    const dateOrder = req.query.dateOrder || 'latest';
-    const priceOrder = req.query.priceOrder || 'desc'; 
+    const dateOrder = req.query.dateOrder || validateConstants('date', dateOrder);
+    const priceOrder = req.query.priceOrder || validateConstants('price', priceOrder); 
     const keyword = req.query.keyword
       ? {
         name: {
@@ -86,6 +86,8 @@ productRouter.get(
         },
       }
       : {}; // TODO: return cannot find product
+
+     //Check if category existed 
     const categoryId = await Category
     .findOne({ "name": { 
                           $regex: req.query.category, 
@@ -94,10 +96,13 @@ productRouter.get(
             });
     const category = categoryId ? { category: categoryId } : {};
     const count = await Product.countDocuments({ ...keyword, ...category });
+
+    //Check if product match keyword
     if (count == 0) {
       res.status(204);
       throw new Error("No products found for this keyword");
     }
+    
     //else
     const products = await Product.find({ ...keyword, ...category })
       .limit(pageSize)
