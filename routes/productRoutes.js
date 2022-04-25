@@ -76,8 +76,8 @@ productRouter.get(
   expressAsyncHandler(async (req, res) => {
     const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
     const page = Number(req.query.pageNumber) || 1;
-    const dateOrder = req.query.dateOrder || validateConstants('date', dateOrder);
-    const priceOrder = req.query.priceOrder || validateConstants('price', priceOrder); 
+    const dateOrder = req.query.dateOrder || validateConstants('date', req.query.dateOrder);
+    const priceOrder = req.query.priceOrder || validateConstants('date', req.query.priceOrder); 
     const keyword = req.query.keyword
       ? {
         name: {
@@ -87,31 +87,26 @@ productRouter.get(
       }
       : {}; // TODO: return cannot find product
 
-     //Check if category existed 
-    const categoryId = await Category
-    .findOne({ "name": { 
-                          $regex: req.query.category, 
-                          $options: 'i', 
-                      }
-            });
-    const category = categoryId ? { category: categoryId } : {};
-    const count = await Product.countDocuments({ ...keyword, ...category });
+    //Check if category existed
+    const categoryName = req.query.category;
+    const categoryId = await Category.findOne({ name: categoryName });
+    const categoryFilter = categoryId ? { category: categoryId } : {};
+    const count = await Product.countDocuments({ ...keyword, ...categoryFilter });
 
     //Check if product match keyword
     if (count == 0) {
       res.status(204);
       throw new Error("No products found for this keyword");
     }
-    
     //else
-    const products = await Product.find({ ...keyword, ...category })
+    const products = await Product.find({ ...keyword, ...categoryFilter })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort({ price: searchConstants.price[priceOrder], createdAt: searchConstants.date[dateOrder] })
       .populate('category', 'name');
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })
-); 
+);
 
 /**
  * Read: ADMIN GET ALL PRODUCTS
