@@ -61,6 +61,7 @@ userRouter.post(
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        avatarUrl: user.avatarUrl || "./images/user.png",
         isAdmin: newUser.isAdmin,
         token: generateToken(newUser._id),
       });
@@ -113,6 +114,7 @@ userRouter.put("/profile", protect, async (req, res) => {
       _id: updateUser._id,
       name: updateUser.name,
       email: updateUser.email,
+      avatarUrl: user.avatarUrl || "./images/user.png",
       isAdmin: updateUser.isAdmin,
       createAt: updateUser.createAt,
       token: generateToken(updateUser._id),
@@ -147,7 +149,7 @@ userRouter.post(
   upload.single("file"),
   expressAsyncHandler(async (req, res) => {
     let user = await User.findById(req.user._id);
-    if(user.isAdmin && req.params.userId) {
+    if (user.isAdmin && req.params.userId) {
       user = await User.findById(req.params.userId);
     }
     if (user) {
@@ -178,6 +180,7 @@ userRouter.post(
         email: updateUser.email,
         avatarUrl: updateUser.avatarUrl,
         isAdmin: updateUser.isAdmin,
+        token: generateToken(user._id),
         createAt: updateUser.createAt,
       });
     } else {
