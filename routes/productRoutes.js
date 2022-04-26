@@ -15,7 +15,7 @@ const productRouter = express.Router();
  * SWAGGER SETUP: ok
  */
 productRouter.post("/", protect, admin, async (req, res) => {
-  const { name, price, description, image, countInStock } = req.body;
+  const { name, price, description, image, countInStock, category } = req.body;
   const isExist = await Product.findOne({ name });
   if (isExist) {
     res.status(400);
@@ -27,6 +27,7 @@ productRouter.post("/", protect, admin, async (req, res) => {
       description,
       image,
       countInStock,
+      category,
       user: req.user._id,
     });
     if (newProduct) {
@@ -76,8 +77,11 @@ productRouter.get(
   expressAsyncHandler(async (req, res) => {
     const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
     const page = Number(req.query.pageNumber) || 1;
-    const dateOrder = req.query.dateOrder || validateConstants('date', req.query.dateOrder);
-    const priceOrder = req.query.priceOrder || validateConstants('date', req.query.priceOrder); 
+    const dateOrderFilter = validateConstants('date', req.query.dateOrder);
+    const priceOrderFilter = validateConstants('price', req.query.priceOrder);
+    const bestSellerFilter = validateConstants('totalSales', req.query.bestSeller);
+    const sortBy = {...bestSellerFilter,...dateOrderFilter, ...priceOrderFilter};
+    console.log(sortBy);
     const keyword = req.query.keyword
       ? {
         name: {
@@ -102,7 +106,7 @@ productRouter.get(
     const products = await Product.find({ ...keyword, ...categoryFilter })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
-      .sort({ price: searchConstants.price[priceOrder], createdAt: searchConstants.date[dateOrder] })
+      .sort(sortBy)
       .populate('category', 'name');
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })

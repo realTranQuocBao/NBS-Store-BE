@@ -66,6 +66,11 @@ const productSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
+    totalSales: {
+      type: Number,
+      required: true,
+      default: 0,
+    }
   },
   {
     timestamps: true,

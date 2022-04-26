@@ -82,7 +82,7 @@ orderRouter.post(
               await Product.findOneAndUpdate(
                 { _id: item.product }, 
                 { $inc: 
-                  { countInStock: -item.qty } 
+                  { countInStock: -item.qty, totalSales: +item.qty }
                 }, 
                 {new: true});
             }

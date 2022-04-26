@@ -6,11 +6,20 @@ const searchConstants = {
     date: {
         newest: 'desc',
         latest: 'asc',
+    },
+    totalSales: {
+        true: 'desc',
     }
 }
 const validateConstants = function(constant, constantField) {
+    if (!constant) {
+        return {};
+    }
     return searchConstants[constant].hasOwnProperty(constantField) 
-    ? constantField
-    : Object.keys(searchConstants[constant])[0] 
+    ? {
+        [constant]: searchConstants[constant][constantField],
+    }
+    : {};
 }
+
 export {searchConstants, validateConstants};
