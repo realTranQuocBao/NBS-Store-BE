@@ -49,7 +49,7 @@ categoryRouter.get(
 categoryRouter.get(
   "/",
   expressAsyncHandler(async (req, res) => {
-    const categories = await Category.find({}).select({ _id: 1, name: 1, slug: 1, __v: 0}).sort({_id: -1});
+    const categories = await Category.find().sort({_id: -1});
     res.json(categories);
   })
 );

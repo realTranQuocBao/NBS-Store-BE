@@ -141,8 +141,7 @@ orderRouter.get(
     const order = await Order.findById(req.params.id).populate(
       "user",
       "name email"
-    )
-    .select({ createdAt: 0, updatedAt: 0, __v: 0 });
+    );
     if (order) {
       res.json(order);
     } else {

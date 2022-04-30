@@ -111,7 +111,6 @@ productRouter.get(
     }
     //else
     const products = await Product.find({ ...keyword, ...categoryFilter })
-      .select({ createdAt: 0, updatedAt: 0, __v: 0 })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort(sortBy)
@@ -145,7 +144,7 @@ productRouter.get(
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
     let product;
-    product = await Product.findById(req.params.id).select({ createdAt: 0, updatedAt: 0, __v: 0 });
+    product = await Product.findById(req.params.id);
     // let product;
     // console.log("new", product);
     // try {
