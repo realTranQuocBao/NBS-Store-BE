@@ -109,7 +109,7 @@ paths:
                     type: array
                     description: total product in 1 page
                     items:
-                      $ref: '#/components/schemas/ProductUserQueryReturn'
+                      $ref: '#/components/schemas/Product'
         '204':
           description: No products found for this keyword
           content:
@@ -164,7 +164,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductUserQueryReturn'
+                $ref: '#/components/schemas/Product'
         '404':
           description: Product not found
           content:
@@ -594,7 +594,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderUserQueryReturn'
+                $ref: '#/components/schemas/Order'
         '401':
           description: Unauthorized
           content:
@@ -833,7 +833,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CategoryUserQueryReturn'
+                  $ref: '#/components/schemas/Category'
   /api/v1/category/all:
     get:
       summary:  Admin get all categories 
@@ -1033,7 +1033,7 @@ components:
         stack:
           type: string
           description: error message description
-    ProductUserQueryReturn:
+    Product:
       type: object
       properties:
         _id:
@@ -1071,16 +1071,11 @@ components:
         totalSales:
           type: number
           description: Product total sales
-    Product: 
-      allOf:
-        - $ref: '#/components/schemas/ProductUserQueryReturn'
-        - type: object
-          properties:
-            timestamp:
-              $ref: '#/components/schemas/Timestamp'
-            __v:
-              type: number
-              description: Document version key
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+        __v:
+          type: number
+          description: Document version key
     UserProfile:
       type: object
       properties:
@@ -1226,7 +1221,7 @@ components:
           type: number
           description: Total price
           default: 0
-    OrderUserQueryReturn:
+    Order:
       type: object
       properties:
         user:
@@ -1269,16 +1264,11 @@ components:
         _id: 
           type: string
           description: Order ID
-    Order: 
-      allOf:
-        - $ref: '#/components/schemas/OrderUserQueryReturn'
-        - type: object
-          properties:
-            timestamp: 
-              $ref: '#/components/schemas/Timestamp'
-            __v: 
-              type: number
-              description: Document version key
+        timestamp: 
+          $ref: '#/components/schemas/Timestamp'
+        __v: 
+          type: number
+          description: Document version key
     OrderedUser:
       type: object
       properties:
@@ -1334,7 +1324,7 @@ components:
           type: boolean
           description: Category status
           default: true 
-    CategoryUserQueryReturn:
+    Category:
       type: object
       properties:
         _id: 
@@ -1350,19 +1340,14 @@ components:
           type: boolean
           description: Category status
           default: true    
-    Category:
-      allOf:
-      - $ref: '#/components/schemas/CategoryUserQueryReturn'
-      - type: object
-        properties:
-          timestampt:
-            $ref: '#/components/schemas/Timestamp' 
-          createdBy:
-            type: string
-            description: User object id who created this record
-          updatedBy:
-            type: string
-            description: User object id who updated this record
+        timestampt:
+          $ref: '#/components/schemas/Timestamp' 
+        createdBy:
+          type: string
+          description: User object id who created this record
+        updatedBy:
+          type: string
+          description: User object id who updated this record
     ProducerForm:
       type: object
       properties:

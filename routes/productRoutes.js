@@ -92,16 +92,19 @@ productRouter.get(
       : {}; // TODO: return cannot find product
 
     //Check if category existed
-    const categoryName = req.query.category;
+    let categoryName = req.query.category;
+    if (!req.query.category) {
+      categoryName = "All";
+    }
     let categoryIds;
-    if (req.query.category == "All") {
+    if (categoryName == "All") {
       categoryIds = await Category.find({}).select({ _id: 1 });
     }
     else {
       categoryIds = await Category.find({ name: categoryName }).select({ _id: 1 });
     }
     const categoryFilter = categoryIds ? { category: categoryIds } : {};
-    console.log(categoryFilter);
+    //(categoryFilter);
     const count = await Product.countDocuments({ ...keyword, ...categoryFilter });
 
     //Check if product match keyword
@@ -111,7 +114,6 @@ productRouter.get(
     }
     //else
     const products = await Product.find({ ...keyword, ...categoryFilter })
-      .select({ createdAt: 0, updatedAt: 0, __v: 0 })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort(sortBy)
@@ -145,7 +147,7 @@ productRouter.get(
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
     let product;
-    product = await Product.findById(req.params.id).select({ createdAt: 0, updatedAt: 0, __v: 0 });
+    product = await Product.findById(req.params.id);
     // let product;
     // console.log("new", product);
     // try {
