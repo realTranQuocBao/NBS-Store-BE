@@ -1,7 +1,9 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
 import Product from "../models/ProductModel.js";
+import Category from "../models/CategoryModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
+import { searchConstants, validateConstants } from "../constants/searchConstants.js";
 
 const productRouter = express.Router();
 
@@ -12,8 +14,8 @@ const productRouter = express.Router();
  * Create: CREATE A NEW PRODUCT
  * SWAGGER SETUP: ok
  */
-productRouter.post("/", protect, admin, async (req, res) => {
-  const { name, price, description, image, countInStock } = req.body;
+productRouter.post("/", protect, admin, expressAsyncHandler(async (req, res) => {
+  const { name, price, description, image, countInStock, category } = req.body;
   const isExist = await Product.findOne({ name });
   if (isExist) {
     res.status(400);
@@ -25,6 +27,7 @@ productRouter.post("/", protect, admin, async (req, res) => {
       description,
       image,
       countInStock,
+      category,
       user: req.user._id,
     });
     if (newProduct) {
@@ -35,14 +38,15 @@ productRouter.post("/", protect, admin, async (req, res) => {
       throw new Error("Invalid product data");
     }
   }
-});
+})
+);
 
 /**
  * Read: GET ALL PRODUCTS
  * (have filter)
  * SWAGGER SETUP: ok
  */
-productRouter.get(
+ /* productRouter.get(
   "/",
   expressAsyncHandler(async (req, res) => {
     const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
@@ -65,6 +69,53 @@ productRouter.get(
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort({ _id: -1 });
+    res.json({ products, page, pages: Math.ceil(count / pageSize) });
+  })
+); */
+
+productRouter.get(
+  "/",
+  expressAsyncHandler(async (req, res) => {
+    const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
+    const page = Number(req.query.pageNumber) || 1;
+    const dateOrderFilter = validateConstants('date', req.query.dateOrder);
+    const priceOrderFilter = validateConstants('price', req.query.priceOrder);
+    const bestSellerFilter = validateConstants('totalSales', req.query.bestSeller);
+    const sortBy = {...bestSellerFilter,...dateOrderFilter, ...priceOrderFilter};
+    const keyword = req.query.keyword
+      ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: "i",
+        },
+      }
+      : {}; // TODO: return cannot find product
+
+    //Check if category existed
+    const categoryName = req.query.category;
+    let categoryIds;
+    if (req.query.category == "All") {
+      categoryIds = await Category.find({}).select({ _id: 1 });
+    }
+    else {
+      categoryIds = await Category.find({ name: categoryName }).select({ _id: 1 });
+    }
+    const categoryFilter = categoryIds ? { category: categoryIds } : {};
+    console.log(categoryFilter);
+    const count = await Product.countDocuments({ ...keyword, ...categoryFilter });
+
+    //Check if product match keyword
+    if (count == 0) {
+      res.status(204);
+      throw new Error("No products found for this keyword");
+    }
+    //else
+    const products = await Product.find({ ...keyword, ...categoryFilter })
+      .select({ createdAt: 0, updatedAt: 0, __v: 0 })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort(sortBy)
+      .populate('category', 'name');
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   })
 );
@@ -94,7 +145,7 @@ productRouter.get(
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
     let product;
-    product = await Product.findById(req.params.id).exec();
+    product = await Product.findById(req.params.id).select({ createdAt: 0, updatedAt: 0, __v: 0 });
     // let product;
     // console.log("new", product);
     // try {
@@ -163,21 +214,31 @@ productRouter.put(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const { name, price, description, image, countInStock } = req.body;
+    const { name, price, description, image, countInStock, category } = req.body;
     let product;
     product = await Product.findById(req.params.id);
-    if (product) {
-      product.name = name || product.name;
-      product.price = price || product.price;
-      product.description = description || product.description;
-      product.image = image || product.image;
-      product.countInStock = countInStock || product.countInStock;
-      const upadatedProduct = await product.save();
-      res.json(upadatedProduct);
-    } else {
+    if (!product) {
       res.status(404);
       throw new Error("Product not Found");
     }
+    product.name = name || product.name;
+    product.price = price || product.price;
+    product.description = description || product.description;
+    product.image = image || product.image;
+    product.countInStock = countInStock || product.countInStock;
+    let existedCategory;
+    if (req.body.category != null) {
+      existedCategory = await Category.findOne({ name: req.body.category });
+      if (!existedCategory) {
+        res.status(404);
+        throw new Error("Category not found");
+      }
+      else {
+        product.category = existedCategory._id;
+      }
+    }
+    const upadatedProduct = await product.save();
+    res.json(upadatedProduct);
   })
 );
 
