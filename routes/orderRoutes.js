@@ -88,7 +88,7 @@ orderRouter.post(
             }
             else {
               res.status(400);
-              throw new Error("Products is out of stock");
+              throw new Error("One or more product order quantity exceed available quantity");
             }
           }
           const createOrder = await order.save();
@@ -141,7 +141,8 @@ orderRouter.get(
     const order = await Order.findById(req.params.id).populate(
       "user",
       "name email"
-    );
+    )
+    .select({ createdAt: 0, updatedAt: 0, __v: 0 });
     if (order) {
       res.json(order);
     } else {
