@@ -9,7 +9,7 @@ producerRouter.post(
     "/",
     protect,
     admin,
-    async (req, res) => {
+    expressAsyncHandler(async (req, res) => {
         const {name, code, keyword, status} = req.body;
         const createdBy = req.user._id;
         const updatedBy = req.user._id;
@@ -36,7 +36,8 @@ producerRouter.post(
                 throw new Error("Invalid Producer data");
             }
         }
-    });
+    })
+    );
 
 producerRouter.get(
     "/all",

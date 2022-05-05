@@ -6,7 +6,7 @@ const CategorySchema = mongoose.Schema(
             type: String,
             required: true,
         },
-        link: {
+        slug: {
             type: String,
             required: false,
             default: "",
