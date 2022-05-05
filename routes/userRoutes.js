@@ -4,6 +4,7 @@ import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import generateToken from "../utils/generateToken.js";
 import resize from "./../utils/resizeImage.js";
 import User from "../models/UserModel.js";
+import Order from "../models/OrderModel.js";
 import { upload } from "./../middleware/UploadMiddleware.js";
 import path from "path";
 import fs from "fs";
@@ -19,7 +20,7 @@ userRouter.post(
   "/login",
   expressAsyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email, isDisabled: false });
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
@@ -45,7 +46,7 @@ userRouter.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
-    const isExistingUser = await User.findOne({ email });
+    const isExistingUser = await User.findOne({ email: email, isDisabled: false });
     if (isExistingUser) {
       res.status(400);
       throw new Error("Email of user already exists");
@@ -61,7 +62,7 @@ userRouter.post(
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        avatarUrl: user.avatarUrl || "./images/user.png",
+        avatarUrl: newUser.avatarUrl || "./images/user.png",
         isAdmin: newUser.isAdmin,
         token: generateToken(newUser._id),
       });
@@ -80,7 +81,8 @@ userRouter.get(
   "/profile",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id);
+    const userId = req.user.id ? req.user.id : null;
+    const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user) {
       res.json({
         _id: user._id,
@@ -102,7 +104,8 @@ userRouter.get(
  * SWAGGER SETUP: no
  */
 userRouter.put("/profile", protect, async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const userId = req.user.id ? req.user.id : null;
+  const user = await User.findOne({ _id: userId, isDisabled: false });
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
@@ -134,7 +137,7 @@ userRouter.get(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const users = await User.find({});
+    const users = await User.find({ isDisabled: false });
     res.json(users);
   })
 );
@@ -148,7 +151,8 @@ userRouter.post(
   protect,
   upload.single("file"),
   expressAsyncHandler(async (req, res) => {
-    let user = await User.findById(req.user._id);
+    const userId = req.user.id ? req.user.id : null;
+    const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user.isAdmin && req.params.userId) {
       user = await User.findById(req.params.userId);
     }
@@ -186,6 +190,55 @@ userRouter.post(
     } else {
       res.status(400);
       throw new Error("User not Found");
+    }
+  })
+);
+
+userRouter.patch(
+  "/:id/disable",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    } else {
+      const order = await Order.findOne({ user: user._id });
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot disable user who had ordered");
+      }
+      else {
+        user.isDisabled = req.body.isDisabled;
+        const updateUser = await user.save();
+        res.status(200);
+        res.json(updateUser);
+      }
+    }
+  })
+);
+
+userRouter.delete(
+  "/:id",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    } else {
+      const order = await Order.findOne({ user: user._id });
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot delete user who had ordered");
+      }
+      else {
+        await user.remove();
+        res.status(200);
+        res.json("User has been deleted");
+      }
     }
   })
 );

@@ -70,7 +70,12 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
-    }
+    },
+    isDisabled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -77,10 +77,10 @@ orderRouter.post(
             totalPrice,
           });
           for (const item of orderItems) {
-            const product = await Product.findOne({_id: item.product});
+            const product = await Product.findOne({_id: item.product, isDisabled: false});
             if (product.countInStock >= item.qty) {
               await Product.findOneAndUpdate(
-                { _id: item.product }, 
+                { _id: item.product, isDisabled: false }, 
                 { $inc: 
                   { countInStock: -item.qty, totalSales: +item.qty }
                 }, 
@@ -112,7 +112,8 @@ orderRouter.get(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find({})
+    //await Order.updateMany({}, { $set: { isDisabled: false } }, {multi: true});
+    const orders = await Order.find({isDisabled: false})
       .sort({ _id: -1 })
       .populate("user", "id name email");
     res.json(orders);
@@ -126,7 +127,7 @@ orderRouter.get(
   "/",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }).sort({ _id: -1 });
+    const orders = await Order.find({ user: req.user._id, isDisabled: false}).sort({ _id: -1 });
     res.json(orders);
   })
 );
@@ -138,7 +139,8 @@ orderRouter.get(
   "/:id",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id).populate(
+    const orderId = req.params.id ? req.params.id : null;
+    const order = await Order.findOne({ _id: orderId, isDisabled: false }).populate(
       "user",
       "name email"
     );
@@ -158,7 +160,8 @@ orderRouter.patch(
   "/:id/pay",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+    const orderId = req.params.id ? req.params.id : null;
+    const order = await Order.findOne({ _id: orderId, isDisabled: false });
     if (order) {
       order.isPaid = true;
       order.paidAt = Date.now();
@@ -184,7 +187,8 @@ orderRouter.patch(
   "/:id/delivered",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+    const orderId = req.params.id ? req.params.id : null;
+    const order = await Order.findOne({ _id: orderId, isDisabled: false});
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
@@ -198,9 +202,43 @@ orderRouter.patch(
   })
 );
 
+orderRouter.patch(
+  "/:id/disable",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404);
+      throw new Error("Order not found");
+    } else {
+      order.isDisabled = req.body.isDisabled;
+      const updateOrder = await order.save();
+      res.status(200);
+      res.json(updateOrder);
+    }
+  })
+);
+
 /**
  * Delete: ...
  * 
  */
+ orderRouter.delete(
+  "/:id",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404);
+      throw new Error("Order not found");
+    } else {
+      await order.remove();
+      res.status(200);
+      res.json("Order has been deleted");
+    }
+  })
+);
 
 export default orderRouter;
