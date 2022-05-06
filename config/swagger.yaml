@@ -219,7 +219,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     delete:
       summary: Delete existed product
-      description: Update existed product
+      description: Delete existed product
       tags:
         - Product
       security:
@@ -310,6 +310,109 @@ paths:
                 $ref: '#/components/schemas/Error'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/product/{id}/disable:
+    patch:
+      summary: Disable a product
+      description: Disable a product
+      security:
+        - bearerAuth: []
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/product/{id}/restore:
+    patch:
+      summary: Restore disabled product
+      description: Restore disabled product
+      security:
+        - bearerAuth: []
+      tags:
+        - Product
+      parameters:
+        - name: id
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -547,6 +650,152 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/user/{id}/disable:
+    patch:
+      summary: Disable a user
+      description: Disable a user
+      security:
+        - bearerAuth: []
+      tags:
+        - User
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/user/{id}/restore:
+    patch:
+      summary: Restore disabled user
+      description: Restore disabled user
+      security:
+        - bearerAuth: []
+      tags:
+        - User
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/user/{id}:
+    delete:
+      summary: Delete existed user
+      description: Delete existed user
+      security:
+        - bearerAuth: []
+      tags:
+        - User
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/order:
     post:
       summary: Create new order
@@ -704,6 +953,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete an order
+      description: Delete an order
+      security:
+        - bearerAuth: []
+      tags:
+        - Order
+      parameters:
+        - name: id
+          in: path
+          description: Order ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/order/{id}/pay:
     patch:
       summary: Confirm order is paid
@@ -785,7 +1070,110 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'   
+                $ref: '#/components/schemas/Error'  
+  /api/v1/order/{id}/disable:
+    patch:
+      summary: Disable an order
+      description: Disable an order
+      security:
+        - bearerAuth: []
+      tags:
+        - Order
+      parameters:
+        - name: id
+          in: path
+          description: Order ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/order/{id}/restore:
+    patch:
+      summary: Restore disabled order
+      description: Restore disabled order
+      security:
+        - bearerAuth: []
+      tags:
+        - Order
+      parameters:
+        - name: id
+          in: path
+          description: Order ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 
   /api/v1/category: 
     post: 
       description: Create a new category
@@ -859,12 +1247,12 @@ paths:
       parameters:
         - name: id
           in: path
-          description: Product ID
+          description: Category ID
           required: true
           schema:
             type: string
       requestBody:
-        description: Payload to create a new category
+        description: Payload to update a new category
         required: true
         content:
           application/json:
@@ -888,7 +1276,152 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'    
+                $ref: '#/components/schemas/Error'   
+    delete:
+      summary: Delete existed category
+      description: Delete existed category
+      security:
+        - bearerAuth: []
+      tags:
+        - Category
+      parameters:
+        - name: id
+          in: path
+          description: Category ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/category/{id}/disable:
+    patch:
+      summary: Disable a category
+      description: Disable a category
+      security:
+        - bearerAuth: []
+      tags:
+        - Category
+      parameters:
+        - name: id
+          in: path
+          description: Category ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/category/{id}/restore:
+    patch:
+      summary: Restore disabled category
+      description: Restore disabled category
+      security:
+        - bearerAuth: []
+      tags:
+        - Category
+      parameters:
+        - name: id
+          in: path
+          description: Category ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 
   /api/v1/producer: 
     post: 
       description: Create a new producer
@@ -979,6 +1512,151 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete existed producer
+      description: Delete existed producer
+      security:
+        - bearerAuth: []
+      tags:
+        - Producer
+      parameters:
+        - name: id
+          in: path
+          description: Producer ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/producer/{id}/disable:
+    patch:
+      summary: Disable a producer
+      description: Disable a producer
+      security:
+        - bearerAuth: []
+      tags:
+        - Producer
+      parameters:
+        - name: id
+          in: path
+          description: Producer ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/producer/{id}/restore:
+    patch:
+      summary: Restore disabled producer
+      description: Restore disabled producer
+      security:
+        - bearerAuth: []
+      tags:
+        - Producer
+      parameters:
+        - name: id
+          in: path
+          description: Producer ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: isDisabled value
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isDisabled:
+                  type: boolean
+                  description: Is disabled or not
+                  nullable: false
+                  default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Producer'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/Error'               
 externalDocs:
   description: "Find out more about Swagger"
@@ -1003,6 +1681,9 @@ components:
         isAdmin:
           type: boolean
           description: is Admin or not
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
     MyUser:
       type: object
       properties:
@@ -1024,6 +1705,19 @@ components:
         token:
           type: string
           description: JWT login token
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
+    User:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MyUser'
+        - type: object
+          properties:
+            _id:
+              type: string
+              description: password
+
     Error:
       type: object
       properties:
@@ -1076,6 +1770,9 @@ components:
         __v:
           type: number
           description: Document version key
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
     UserProfile:
       type: object
       properties:
@@ -1094,6 +1791,9 @@ components:
         isAdmin:
           type: boolean
           description: is Admin or not
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
     ProductForm:
       type: object
       properties:
@@ -1269,6 +1969,9 @@ components:
         __v: 
           type: number
           description: Document version key
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
     OrderedUser:
       type: object
       properties:
@@ -1348,6 +2051,9 @@ components:
         updatedBy:
           type: string
           description: User object id who updated this record
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
     ProducerForm:
       type: object
       properties:
@@ -1389,7 +2095,10 @@ components:
           description: User object id who created this record
         updatedBy:
           type: string
-          description: User object id who updated this record                                                        
+          description: User object id who updated this record
+        isDisabled:
+          type: boolean
+          description: is Disabled or not                                                        
   # 1) Define the security scheme type (HTTP bearer)
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme

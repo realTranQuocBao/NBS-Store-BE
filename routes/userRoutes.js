@@ -4,6 +4,7 @@ import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import generateToken from "../utils/generateToken.js";
 import resize from "./../utils/resizeImage.js";
 import User from "../models/UserModel.js";
+import Order from "../models/OrderModel.js";
 import { upload } from "./../middleware/UploadMiddleware.js";
 import path from "path";
 import fs from "fs";
@@ -19,7 +20,7 @@ userRouter.post(
   "/login",
   expressAsyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email, isDisabled: false });
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
@@ -29,6 +30,7 @@ userRouter.post(
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
         createdAt: user.createdAt,
+        isDisabled: user.isDisabled,
       });
     } else {
       res.status(401);
@@ -45,7 +47,7 @@ userRouter.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
-    const isExistingUser = await User.findOne({ email });
+    const isExistingUser = await User.findOne({ email: email, isDisabled: false });
     if (isExistingUser) {
       res.status(400);
       throw new Error("Email of user already exists");
@@ -61,8 +63,9 @@ userRouter.post(
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        avatarUrl: user.avatarUrl || "./images/user.png",
+        avatarUrl: newUser.avatarUrl || "./images/user.png",
         isAdmin: newUser.isAdmin,
+        isDisabled: newUser.isDisabled,
         token: generateToken(newUser._id),
       });
     } else {
@@ -80,7 +83,8 @@ userRouter.get(
   "/profile",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id);
+    const userId = req.user.id ? req.user.id : null;
+    const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user) {
       res.json({
         _id: user._id,
@@ -89,6 +93,7 @@ userRouter.get(
         avatarUrl: user.avatarUrl || "./images/avatar/default.png",
         isAdmin: user.isAdmin,
         createAt: user.createAt,
+        isDisabled: newUser.isDisabled,
       });
     } else {
       res.status(400);
@@ -102,7 +107,8 @@ userRouter.get(
  * SWAGGER SETUP: no
  */
 userRouter.put("/profile", protect, async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const userId = req.user.id ? req.user.id : null;
+  const user = await User.findOne({ _id: userId, isDisabled: false });
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
@@ -117,6 +123,7 @@ userRouter.put("/profile", protect, async (req, res) => {
       avatarUrl: user.avatarUrl || "./images/user.png",
       isAdmin: updateUser.isAdmin,
       createAt: updateUser.createAt,
+      isDisabled: newUser.isDisabled,
       token: generateToken(updateUser._id),
     });
   } else {
@@ -134,7 +141,7 @@ userRouter.get(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const users = await User.find({});
+    const users = await User.find({ isDisabled: false });
     res.json(users);
   })
 );
@@ -148,7 +155,8 @@ userRouter.post(
   protect,
   upload.single("file"),
   expressAsyncHandler(async (req, res) => {
-    let user = await User.findById(req.user._id);
+    const userId = req.user.id ? req.user.id : null;
+    const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user.isAdmin && req.params.userId) {
       user = await User.findById(req.params.userId);
     }
@@ -181,11 +189,84 @@ userRouter.post(
         avatarUrl: updateUser.avatarUrl,
         isAdmin: updateUser.isAdmin,
         token: generateToken(user._id),
+        isDisabled: newUser.isDisabled,
         createAt: updateUser.createAt,
       });
     } else {
       res.status(400);
       throw new Error("User not Found");
+    }
+  })
+);
+
+//Admin disable user
+userRouter.patch(
+  "/:id/disable",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    } else {
+      const order = await Order.findOne({ user: user._id, isDisabled: false });
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot disable user who had ordered");
+      }
+      else {
+        user.isDisabled = req.body.isDisabled;
+        await user.save();
+        res.status(200);
+        res.json({ message: "User has been disabled" });
+      }
+    }
+  })
+);
+
+//Admin restore disabled user
+userRouter.patch(
+  "/:id/restore",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const userId = req.params.id ? req.params.id : null;
+    const user = await Order.findOne({ _id: userId, isDisabled: true });
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    } else {
+      user.isDisabled = req.body.isDisabled;
+      const updateUser = await user.save();
+      res.status(200);
+      res.json(updateUser);
+    }
+  })
+);
+
+
+//Admin delete user
+userRouter.delete(
+  "/:id",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    } else {
+      const order = await Order.findOne({ user: user._id, isDisabled: false });
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot delete user who had ordered");
+      }
+      else {
+        await user.remove();
+        res.status(200);
+        res.json({ message: "User has been deleted"});
+      }
     }
   })
 );
