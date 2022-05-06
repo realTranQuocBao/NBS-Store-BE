@@ -30,6 +30,7 @@ userRouter.post(
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
         createdAt: user.createdAt,
+        isDisabled: user.isDisabled,
       });
     } else {
       res.status(401);
@@ -64,6 +65,7 @@ userRouter.post(
         email: newUser.email,
         avatarUrl: newUser.avatarUrl || "./images/user.png",
         isAdmin: newUser.isAdmin,
+        isDisabled: newUser.isDisabled,
         token: generateToken(newUser._id),
       });
     } else {
@@ -91,6 +93,7 @@ userRouter.get(
         avatarUrl: user.avatarUrl || "./images/avatar/default.png",
         isAdmin: user.isAdmin,
         createAt: user.createAt,
+        isDisabled: newUser.isDisabled,
       });
     } else {
       res.status(400);
@@ -120,6 +123,7 @@ userRouter.put("/profile", protect, async (req, res) => {
       avatarUrl: user.avatarUrl || "./images/user.png",
       isAdmin: updateUser.isAdmin,
       createAt: updateUser.createAt,
+      isDisabled: newUser.isDisabled,
       token: generateToken(updateUser._id),
     });
   } else {
@@ -185,6 +189,7 @@ userRouter.post(
         avatarUrl: updateUser.avatarUrl,
         isAdmin: updateUser.isAdmin,
         token: generateToken(user._id),
+        isDisabled: newUser.isDisabled,
         createAt: updateUser.createAt,
       });
     } else {
@@ -194,6 +199,7 @@ userRouter.post(
   })
 );
 
+//Admin disable user
 userRouter.patch(
   "/:id/disable",
   protect,
@@ -204,21 +210,43 @@ userRouter.patch(
       res.status(404);
       throw new Error("User not found");
     } else {
-      const order = await Order.findOne({ user: user._id });
+      const order = await Order.findOne({ user: user._id, isDisabled: false });
       if (order) {
         res.status(400);
         throw new Error("Cannot disable user who had ordered");
       }
       else {
         user.isDisabled = req.body.isDisabled;
-        const updateUser = await user.save();
+        await user.save();
         res.status(200);
-        res.json(updateUser);
+        res.json({ message: "User has been disabled" });
       }
     }
   })
 );
 
+//Admin restore disabled user
+userRouter.patch(
+  "/:id/restore",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const userId = req.params.id ? req.params.id : null;
+    const user = await Order.findOne({ _id: userId, isDisabled: true });
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    } else {
+      user.isDisabled = req.body.isDisabled;
+      const updateUser = await user.save();
+      res.status(200);
+      res.json(updateUser);
+    }
+  })
+);
+
+
+//Admin delete user
 userRouter.delete(
   "/:id",
   protect,
@@ -229,7 +257,7 @@ userRouter.delete(
       res.status(404);
       throw new Error("User not found");
     } else {
-      const order = await Order.findOne({ user: user._id });
+      const order = await Order.findOne({ user: user._id, isDisabled: false });
       if (order) {
         res.status(400);
         throw new Error("Cannot delete user who had ordered");
@@ -237,7 +265,7 @@ userRouter.delete(
       else {
         await user.remove();
         res.status(200);
-        res.json("User has been deleted");
+        res.json({ message: "User has been deleted"});
       }
     }
   })

@@ -46,6 +46,8 @@ const orderRouter = express.Router();
   })
 ); */
 
+
+//User place new order
 orderRouter.post(
   "/",
   protect,
@@ -77,7 +79,7 @@ orderRouter.post(
             totalPrice,
           });
           for (const item of orderItems) {
-            const product = await Product.findOne({_id: item.product, isDisabled: false});
+            const product = await Product.findOne({ _id: item.product, isDisabled: false });
             if (product.countInStock >= item.qty) {
               await Product.findOneAndUpdate(
                 { _id: item.product, isDisabled: false }, 
@@ -113,7 +115,7 @@ orderRouter.get(
   admin,
   expressAsyncHandler(async (req, res) => {
     //await Order.updateMany({}, { $set: { isDisabled: false } }, {multi: true});
-    const orders = await Order.find({isDisabled: false})
+    const orders = await Order.find({ isDisabled: false })
       .sort({ _id: -1 })
       .populate("user", "id name email");
     res.json(orders);
@@ -127,7 +129,7 @@ orderRouter.get(
   "/",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id, isDisabled: false}).sort({ _id: -1 });
+    const orders = await Order.find({ user: req.user._id, isDisabled: false }).sort({ _id: -1 });
     res.json(orders);
   })
 );
@@ -188,11 +190,10 @@ orderRouter.patch(
   protect,
   expressAsyncHandler(async (req, res) => {
     const orderId = req.params.id ? req.params.id : null;
-    const order = await Order.findOne({ _id: orderId, isDisabled: false});
+    const order = await Order.findOne({ _id: orderId, isDisabled: false });
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
-
       const updateOrder = await order.save();
       res.json(updateOrder);
     } else {
@@ -202,12 +203,33 @@ orderRouter.patch(
   })
 );
 
+//Admin disable order
 orderRouter.patch(
   "/:id/disable",
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404);
+      throw new Error("Order not found");
+    } else {
+      order.isDisabled = req.body.isDisabled;
+      await order.save();
+      res.status(200);
+      res.json({ message: "Order has been disabled" });
+    }
+  })
+);
+
+//Admin restore disabled order
+orderRouter.patch(
+  "/:id/restore",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const orderId = req.params.id ? req.params.id : null;
+    const order = await Order.findOne({ _id: orderId, isDisabled: true });
     if (!order) {
       res.status(404);
       throw new Error("Order not found");
@@ -220,10 +242,7 @@ orderRouter.patch(
   })
 );
 
-/**
- * Delete: ...
- * 
- */
+//Admin delete order
  orderRouter.delete(
   "/:id",
   protect,
@@ -236,7 +255,7 @@ orderRouter.patch(
     } else {
       await order.remove();
       res.status(200);
-      res.json("Order has been deleted");
+      res.json({ message: "Order has been deleted"});
     }
   })
 );

@@ -147,8 +147,8 @@ productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
-    const id = req.params.id ? req.params.id : null;
-    const product = await Product.findOne({ _id: id, isDisabled: false });
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Product.findOne({ _id: productId, isDisabled: false });
     // let product;
     // console.log("new", product);
     // try {
@@ -176,8 +176,8 @@ productRouter.post(
   protect,
   expressAsyncHandler(async (req, res) => {
     const { rating, comment } = req.body;
-    const id = req.params.id ? req.params.id : null;
-    const product = await Product.findOne({ _id: id, isDisabled: false });
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Product.findOne({ _id: productId, isDisabled: false });
     if (product) {
       const alreadyReviewed = product.reviews.find(
         (reviewItem) => reviewItem.user.toString() === req.user._id.toString()
@@ -218,8 +218,8 @@ productRouter.put(
   admin,
   expressAsyncHandler(async (req, res) => {
     const { name, price, description, image, countInStock, category } = req.body;
-    const id = req.params.id ? req.params.id : null;
-    const product = await Product.findOne({ _id: id, isDisabled: false });
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Product.findOne({ _id: productId, isDisabled: false });
     if (!product) {
       res.status(404);
       throw new Error("Product not Found");
@@ -245,6 +245,8 @@ productRouter.put(
   })
 );
 
+
+//Admin disable product
 productRouter.patch(
   "/:id/disable",
   protect,
@@ -255,18 +257,37 @@ productRouter.patch(
       res.status(404);
       throw new Error("Product not found");
     } else {
-      const order = await Order.findOne({ 'orderItems.product': product._id });        
+      const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
       if (order) {
         res.status(400);
         throw new Error("Cannot disable ordered product");
       }
       else {
         product.isDisabled = req.body.isDisabled;
-        const updateProduct = await product.save();
-        //console.log(updateProduct);
+        await product.save();
         res.status(200);
-        res.json(updateProduct);
+        res.json({ message: "Product has been disabled" });
       }
+    }
+  })
+);
+
+//Admin restore disabled product
+productRouter.patch(
+  "/:id/restore",
+  protect,
+  admin, 
+  expressAsyncHandler(async (req, res) => {
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Order.findOne({ _id: productId, isDisabled: true });
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    } else {
+      product.isDisabled = req.body.isDisabled;
+      const updateProduct = await product.save();
+      res.status(200);
+      res.json(updateProduct);
     }
   })
 );
@@ -285,9 +306,16 @@ productRouter.delete(
       res.status(404);
       throw new Error("Product not found");
     } else {
-      await product.remove(); 
-      res.status(200);
-      res.json({ message: "Product has been deleted" });
+      const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot delete ordered product");
+      }
+      else {
+        await product.remove();
+        res.status(200);
+        res.json({ message: "Product has been deleted"});
+      }
     }
   })
 );

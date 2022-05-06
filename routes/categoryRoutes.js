@@ -6,6 +6,7 @@ import Product from "../models/ProductModel.js";
 
 const categoryRouter = express.Router();
 
+//Admin create new category
 categoryRouter.post("/", protect, admin, expressAsyncHandler(async (req, res) => {
   const {name, slug, isDisabled} = req.body;
   const createdBy = req.user._id;
@@ -21,7 +22,6 @@ categoryRouter.post("/", protect, admin, expressAsyncHandler(async (req, res) =>
         slug,
         createdBy,
         updatedBy, 
-        isDisabled,
       });
       if (newCategory) {
         const createdCategory = await newCategory.save();
@@ -56,6 +56,7 @@ categoryRouter.get(
   })
 );
 
+//Admin udpate category
 categoryRouter.put(
     "/:id",
     protect,
@@ -77,6 +78,7 @@ categoryRouter.put(
     })
   );
 
+//Admin disable category
 categoryRouter.patch(
   "/:id/disable",
   protect,
@@ -94,14 +96,35 @@ categoryRouter.patch(
       }
       else {
         category.isDisabled = req.body.isDisabled;
-        const updateCategory = await category.save();
+        await category.save();
         res.status(200);
-        res.json(updateCategory);
+        res.json({ message: "Category has been disabled" });
       }
     }
   })
 );
 
+//Admin restore disabled category
+categoryRouter.patch(
+  "/:id/restore",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const categoryId = req.params.id ? req.params.id : null;
+    const category = await Category.findOne({ _id: categoryId, isDisabled: true });
+    if (!category) {
+      res.status(404);
+      throw new Error("Category not found");
+    } else {
+      category.isDisabled = req.body.isDisabled;
+      const updateCategory = await category.save();
+      res.status(200);
+      res.json(updateCategory);
+    }
+  })
+);
+
+//Admin delete category
 categoryRouter.delete(
   "/:id",
   protect,
@@ -120,7 +143,7 @@ categoryRouter.delete(
       else {
         await category.remove();
         res.status(200);
-        res.json("Category has been deleted");
+        res.json({ message: "Category has been deleted"});
       }
     }
   })
