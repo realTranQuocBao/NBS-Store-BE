@@ -231,7 +231,7 @@ productRouter.put(
     product.countInStock = countInStock || product.countInStock;
     let existedCategory;
     if (req.body.category != null) {
-      existedCategory = await Category.findOne({ name: req.body.category, isDisabled: false });
+      existedCategory = await Category.findOne({ _id: req.body.category, isDisabled: false });
       if (!existedCategory) {
         res.status(404);
         throw new Error("Category not found");
