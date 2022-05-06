@@ -26,6 +26,27 @@ const reviewSchema = mongoose.Schema(
   }
 );
 
+const commentSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    comment: {
+      type: String,
+      required: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 const productSchema = mongoose.Schema(
   {
     name: {
@@ -40,6 +61,7 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     reviews: [reviewSchema],
+    comments: [commentSchema],
     category: {
       type: mongoose.Schema.Types.ObjectId,
       required: false,
@@ -70,7 +92,12 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
-    }
+    },
+    isDisabled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     timestamps: true,

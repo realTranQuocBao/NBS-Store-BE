@@ -6,7 +6,7 @@ const CategorySchema = mongoose.Schema(
             type: String,
             required: true,
         },
-        link: {
+        slug: {
             type: String,
             required: false,
             default: "",
@@ -21,10 +21,10 @@ const CategorySchema = mongoose.Schema(
             required: true,
             ref: "User",
         },
-        status: {
+        isDisabled: {
             type: Boolean,
-            required: false,
-            default: true,
+            required: true,
+            default: false,
         },
     },
     {

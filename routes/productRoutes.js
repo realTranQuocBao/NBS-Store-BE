@@ -2,6 +2,7 @@ import express from "express";
 import expressAsyncHandler from "express-async-handler";
 import Product from "../models/ProductModel.js";
 import Category from "../models/CategoryModel.js";
+import Order from "../models/OrderModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import { searchConstants, validateConstants } from "../constants/searchConstants.js";
 
@@ -14,9 +15,9 @@ const productRouter = express.Router();
  * Create: CREATE A NEW PRODUCT
  * SWAGGER SETUP: ok
  */
-productRouter.post("/", protect, admin, async (req, res) => {
+productRouter.post("/", protect, admin, expressAsyncHandler(async (req, res) => {
   const { name, price, description, image, countInStock, category } = req.body;
-  const isExist = await Product.findOne({ name });
+  const isExist = await Product.findOne({ name: name, isDisabled: false });
   if (isExist) {
     res.status(400);
     throw new Error("Product name already exist");
@@ -38,7 +39,8 @@ productRouter.post("/", protect, admin, async (req, res) => {
       throw new Error("Invalid product data");
     }
   }
-});
+})
+);
 
 /**
  * Read: GET ALL PRODUCTS
@@ -81,7 +83,6 @@ productRouter.get(
     const priceOrderFilter = validateConstants('price', req.query.priceOrder);
     const bestSellerFilter = validateConstants('totalSales', req.query.bestSeller);
     const sortBy = {...bestSellerFilter,...dateOrderFilter, ...priceOrderFilter};
-    console.log(sortBy);
     const keyword = req.query.keyword
       ? {
         name: {
@@ -92,10 +93,20 @@ productRouter.get(
       : {}; // TODO: return cannot find product
 
     //Check if category existed
-    const categoryName = req.query.category;
-    const categoryId = await Category.findOne({ name: categoryName });
-    const categoryFilter = categoryId ? { category: categoryId } : {};
-    const count = await Product.countDocuments({ ...keyword, ...categoryFilter });
+    let categoryName = req.query.category;
+    if (!req.query.category) {
+      categoryName = "All";
+    }
+    let categoryIds;
+    if (categoryName == "All") {
+      categoryIds = await Category.find({ isDisabled: false }).select({ _id: 1 });
+    }
+    else {
+      categoryIds = await Category.find({ name: categoryName, isDisabled: false }).select({ _id: 1 });
+    }
+    const categoryFilter = categoryIds ? { category: categoryIds } : {};
+    //(categoryFilter);
+    const count = await Product.countDocuments({ ...keyword, ...categoryFilter, isDisabled: false });
 
     //Check if product match keyword
     if (count == 0) {
@@ -103,7 +114,7 @@ productRouter.get(
       throw new Error("No products found for this keyword");
     }
     //else
-    const products = await Product.find({ ...keyword, ...categoryFilter })
+    const products = await Product.find({ ...keyword, ...categoryFilter, isDisabled: false })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
       .sort(sortBy)
@@ -122,7 +133,7 @@ productRouter.get(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const products = await Product.find({}).sort({ _id: -1 });
+    const products = await Product.find({ isDisabled: false }).sort({ _id: -1 });
     res.json(products);
   })
 );
@@ -136,8 +147,8 @@ productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
-    let product;
-    product = await Product.findById(req.params.id).exec();
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Product.findOne({ _id: productId, isDisabled: false });
     // let product;
     // console.log("new", product);
     // try {
@@ -165,8 +176,8 @@ productRouter.post(
   protect,
   expressAsyncHandler(async (req, res) => {
     const { rating, comment } = req.body;
-    let product;
-    product = await Product.findById(req.params.id);
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Product.findOne({ _id: productId, isDisabled: false });
     if (product) {
       const alreadyReviewed = product.reviews.find(
         (reviewItem) => reviewItem.user.toString() === req.user._id.toString()
@@ -206,20 +217,77 @@ productRouter.put(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const { name, price, description, image, countInStock } = req.body;
-    let product;
-    product = await Product.findById(req.params.id);
-    if (product) {
-      product.name = name || product.name;
-      product.price = price || product.price;
-      product.description = description || product.description;
-      product.image = image || product.image;
-      product.countInStock = countInStock || product.countInStock;
-      const upadatedProduct = await product.save();
-      res.json(upadatedProduct);
-    } else {
+    const { name, price, description, image, countInStock, category } = req.body;
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Product.findOne({ _id: productId, isDisabled: false });
+    if (!product) {
       res.status(404);
       throw new Error("Product not Found");
+    }
+    product.name = name || product.name;
+    product.price = price || product.price;
+    product.description = description || product.description;
+    product.image = image || product.image;
+    product.countInStock = countInStock || product.countInStock;
+    let existedCategory;
+    if (req.body.category != null) {
+      existedCategory = await Category.findOne({ name: req.body.category, isDisabled: false });
+      if (!existedCategory) {
+        res.status(404);
+        throw new Error("Category not found");
+      }
+      else {
+        product.category = existedCategory._id;
+      }
+    }
+    const upadatedProduct = await product.save();
+    res.json(upadatedProduct);
+  })
+);
+
+
+//Admin disable product
+productRouter.patch(
+  "/:id/disable",
+  protect,
+  admin, 
+  expressAsyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    } else {
+      const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot disable ordered product");
+      }
+      else {
+        product.isDisabled = req.body.isDisabled;
+        await product.save();
+        res.status(200);
+        res.json({ message: "Product has been disabled" });
+      }
+    }
+  })
+);
+
+//Admin restore disabled product
+productRouter.patch(
+  "/:id/restore",
+  protect,
+  admin, 
+  expressAsyncHandler(async (req, res) => {
+    const productId = req.params.id ? req.params.id : null;
+    const product = await Order.findOne({ _id: productId, isDisabled: true });
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    } else {
+      product.isDisabled = req.body.isDisabled;
+      const updateProduct = await product.save();
+      res.status(200);
+      res.json(updateProduct);
     }
   })
 );
@@ -233,14 +301,21 @@ productRouter.delete(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    let product;
-    product = await Product.findById(req.params.id);
-    if (product) {
-      await product.remove();
-      res.json({ message: "Product has been deleted" });
-    } else {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
       res.status(404);
-      throw new Error("Product not Found");
+      throw new Error("Product not found");
+    } else {
+      const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
+      if (order) {
+        res.status(400);
+        throw new Error("Cannot delete ordered product");
+      }
+      else {
+        await product.remove();
+        res.status(200);
+        res.json({ message: "Product has been deleted"});
+      }
     }
   })
 );
