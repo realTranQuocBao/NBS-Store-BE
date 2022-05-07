@@ -51,6 +51,23 @@ producerRouter.get(
     })
 );
 
+//Admin get all disabled producers
+producerRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const producers = await Producer.find({ isDisabled: true });
+    if (producers.length != 0) {
+      res.status(200);
+      res.json(producers);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No producers are disabled"} );
+    }
+  })
+);
 
 //Admin update producer by id
 producerRouter.put(

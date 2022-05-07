@@ -122,6 +122,24 @@ orderRouter.get(
   })
 );
 
+//Admin get all disabled orders
+orderRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const orders = await Order.find({ isDisabled: true });
+    if (orders.length != 0) {
+      res.status(200);
+      res.json(orders);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No orders are disabled"} );
+    }
+  })
+);
+
 /**
  * Read: USER LOGIN ORDERS
  */

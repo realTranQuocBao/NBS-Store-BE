@@ -47,6 +47,25 @@ categoryRouter.get(
   })
 );
 
+//Admin get all disabled categories
+categoryRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const categories = await Category.find({ isDisabled: true });
+    if (categories.length != 0) {
+      res.status(200);
+      res.json(categories);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No categories are disabled"} );
+    }
+  })
+);
+
+
 //User, non-user get all catgories
 categoryRouter.get(
   "/",

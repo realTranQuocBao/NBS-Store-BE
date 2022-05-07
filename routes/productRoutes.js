@@ -138,6 +138,24 @@ productRouter.get(
   })
 );
 
+//Admin get all disabled products
+productRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const products = await Product.find({ isDisabled: true });
+    if (products.length != 0) {
+      res.status(200);
+      res.json(products);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No products are disabled"} );
+    }
+  })
+);
+
 /**
  * Read: GET A PRODUCT DETAIL
  * (by Id)

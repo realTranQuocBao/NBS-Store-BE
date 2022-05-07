@@ -141,8 +141,26 @@ userRouter.get(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const users = await User.find({ isDisabled: false });
+    const users = await User.find({ isDisabled: false }).select({ cart: 0 });
     res.json(users);
+  })
+);
+
+//Admin get all disabled users
+userRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const users = await User.find({ isDisabled: true }).select({ cart: 0 });
+    if (users.length != 0) {
+      res.status(200);
+      res.json(users);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No users are disabled"} );
+    }
   })
 );
 
@@ -232,7 +250,7 @@ userRouter.patch(
   admin,
   expressAsyncHandler(async (req, res) => {
     const userId = req.params.id ? req.params.id : null;
-    const user = await Order.findOne({ _id: userId, isDisabled: true });
+    const user = await Order.findOne({ _id: userId, isDisabled: true }).select({ cart: 0 });
     if (!user) {
       res.status(404);
       throw new Error("User not found");
@@ -269,6 +287,10 @@ userRouter.delete(
       }
     }
   })
+);
+
+userRouter.post(
+  "/:id/"
 );
 
 export default userRouter;
