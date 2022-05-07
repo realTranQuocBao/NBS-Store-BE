@@ -93,7 +93,7 @@ userRouter.get(
         avatarUrl: user.avatarUrl || "./images/avatar/default.png",
         isAdmin: user.isAdmin,
         createAt: user.createAt,
-        isDisabled: newUser.isDisabled,
+        isDisabled: user.isDisabled,
       });
     } else {
       res.status(400);
@@ -120,10 +120,10 @@ userRouter.put("/profile", protect, async (req, res) => {
       _id: updateUser._id,
       name: updateUser.name,
       email: updateUser.email,
-      avatarUrl: user.avatarUrl || "./images/user.png",
+      avatarUrl: updateUser.avatarUrl || "./images/user.png",
       isAdmin: updateUser.isAdmin,
       createAt: updateUser.createAt,
-      isDisabled: newUser.isDisabled,
+      isDisabled: updateUser.isDisabled,
       token: generateToken(updateUser._id),
     });
   } else {
@@ -188,8 +188,8 @@ userRouter.post(
         email: updateUser.email,
         avatarUrl: updateUser.avatarUrl,
         isAdmin: updateUser.isAdmin,
-        token: generateToken(user._id),
-        isDisabled: newUser.isDisabled,
+        token: generateToken(updateUser._id),
+        isDisabled: updateUser.isDisabled,
         createAt: updateUser.createAt,
       });
     } else {
