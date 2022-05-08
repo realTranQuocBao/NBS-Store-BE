@@ -5,9 +5,11 @@ import generateToken from "../utils/generateToken.js";
 import resize from "./../utils/resizeImage.js";
 import User from "../models/UserModel.js";
 import Order from "../models/OrderModel.js";
+import Cart from "../models/CartModel.js";
 import { upload } from "./../middleware/UploadMiddleware.js";
 import path from "path";
 import fs from "fs";
+import mongoose from "mongoose";
 const __dirname = path.resolve();
 
 const userRouter = express.Router();
@@ -53,12 +55,26 @@ userRouter.post(
       throw new Error("Email of user already exists");
     }
     //else
-    const newUser = await User.create({
-      name,
-      email,
-      password,
-    });
-    if (newUser) {
+    const session = mongoose.startSession();
+    (await session).withTransaction(async () => {
+      const newUser = await User.create({
+        name,
+        email,
+        password,
+      });
+      if (!newUser) {
+        res.status(400);
+        throw new Error("Invalid user data");
+      } 
+      const newCart = await Cart.create({
+        user: newUser._id,
+        cartItems: [],
+      });
+      if (!newCart) {
+        //Note: không biết trả về status với error gì cho hợp lý.
+        res.status(400);
+        throw new Error("Failed to create user cart");
+      } 
       res.status(201).json({
         _id: newUser._id,
         name: newUser.name,
@@ -68,10 +84,8 @@ userRouter.post(
         isDisabled: newUser.isDisabled,
         token: generateToken(newUser._id),
       });
-    } else {
-      res.status(400);
-      throw new Error("Invalid user data");
-    }
+    });
+    (await session).endSession();
   })
 );
 
@@ -251,23 +265,31 @@ userRouter.delete(
   "/:id",
   protect,
   admin,
-  expressAsyncHandler(async (req, res) => {
+  expressAsyncHandler(async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } else {
+    } 
       const order = await Order.findOne({ user: user._id, isDisabled: false });
       if (order) {
         res.status(400);
         throw new Error("Cannot delete user who had ordered");
       }
-      else {
-        await user.remove();
+      const session = mongoose.startSession();
+      (await session).withTransaction(async () => {
+        const deletedUser = await User.findOneAndDelete({ _id: user._id });
+        if (!deletedUser) {
+          throw new Error("Something wrong while deleting user");
+        }
+        const deletedCart = await Cart.findOneAndDelete({ user: deletedUser._id });
+        if (!deletedCart) {
+          throw new Error("Something wrong while deleting user cart");
+        }
         res.status(200);
         res.json({ message: "User has been deleted"});
-      }
-    }
+      });
+      (await session).endSession(); 
   })
 );
 
