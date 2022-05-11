@@ -93,7 +93,7 @@ userRouter.get(
         avatarUrl: user.avatarUrl || "./images/avatar/default.png",
         isAdmin: user.isAdmin,
         createAt: user.createAt,
-        isDisabled: newUser.isDisabled,
+        isDisabled: user.isDisabled,
       });
     } else {
       res.status(400);
