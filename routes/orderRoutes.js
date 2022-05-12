@@ -4,6 +4,7 @@ import expressAsyncHandler from "express-async-handler";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import Order from "./../models/OrderModel.js";
 import Product from "../models/ProductModel.js";
+import Cart from "../models/CartModel.js";
 const orderRouter = express.Router();
 
 // CRUD
@@ -52,8 +53,6 @@ orderRouter.post(
   "/",
   protect,
   expressAsyncHandler(async (req, res, next) => {
-    const session = mongoose.startSession();
-    (await session).withTransaction(async () => {
       const {
         orderItems,
         shippingAddress,
@@ -66,8 +65,20 @@ orderRouter.post(
       if (orderItems && orderItems.length === 0) {
         res.status(400);
         throw new Error("No order items");
-      } else {
-        try {
+      }
+      const cart = await Cart.findOne({ user: req.user._id });
+      if (!cart) {
+        res.status(404);
+        throw new Error("Cart not found");
+      }
+      const session = await mongoose.startSession();
+      const transactionOptions = {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        writeConcern: { w: 'majority' },
+      };
+      try {
+        await session.withTransaction(async () => { 
           const order = new Order({
             orderItems,
             user: req.user._id,
@@ -78,30 +89,37 @@ orderRouter.post(
             shippingPrice,
             totalPrice,
           });
-          for (const item of orderItems) {
-            const product = await Product.findOne({ _id: item.product, isDisabled: false });
-            if (product.countInStock >= item.qty) {
-              await Product.findOneAndUpdate(
-                { _id: item.product, isDisabled: false }, 
-                { $inc: 
-                  { countInStock: -item.qty, totalSales: +item.qty }
-                }, 
-                {new: true});
-            }
-            else {
+          for (const orderItem of orderItems) {
+            const product = await Product.findOne({ _id: orderItem.product, isDisabled: false }).session(session);
+            if (product.countInStock < orderItem.qty) {
+              await session.abortTransaction();
               res.status(400);
               throw new Error("One or more product order quantity exceed available quantity");
             }
+            let cartItemIndex = cart.cartItems.findIndex(cartItem => cartItem.product.toString() == orderItem.product.toString());  
+            if (cartItemIndex !== -1) {
+              cart.cartItems.splice(cartItemIndex, 1);
+            }
+            await Product.findOneAndUpdate(
+              { _id: orderItem.product, isDisabled: false }, 
+              { $inc: 
+                { countInStock: -orderItem.qty, totalSales: +orderItem.qty }
+              },
+              { new: true },
+            ).session(session);
           }
-          const createOrder = await order.save();
-          res.status(201).json(createOrder);
-        }
-        catch (error) {
-          next(error);
-        }
+          await cart.save();
+          const createdOrder = await order.save();
+          res.status(201);
+          res.json(createdOrder);
+        }, transactionOptions);
       }
-    });
-    (await session).endSession();
+      catch (error) {
+        next(error);
+      }
+      finally {
+        await session.endSession();
+      }
   })
 );
 
