@@ -3,6 +3,7 @@ import expressAsyncHandler from "express-async-handler";
 import Product from "../models/ProductModel.js";
 import Category from "../models/CategoryModel.js";
 import Order from "../models/OrderModel.js";
+import Cart from "../models/CartModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import { searchConstants, validateConstants } from "../constants/searchConstants.js";
 
@@ -265,6 +266,7 @@ productRouter.put(
 
 
 //Admin disable product
+//Note: check if product is added to users cart 
 productRouter.patch(
   "/:id/disable",
   protect,
@@ -274,19 +276,21 @@ productRouter.patch(
     if (!product) {
       res.status(404);
       throw new Error("Product not found");
-    } else {
-      const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
-      if (order) {
-        res.status(400);
-        throw new Error("Cannot disable ordered product");
-      }
-      else {
-        product.isDisabled = req.body.isDisabled;
-        await product.save();
-        res.status(200);
-        res.json({ message: "Product has been disabled" });
-      }
     }
+    const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
+    if (order) {
+      res.status(400);
+      throw new Error("Cannot disable ordered product");
+    }     
+    const cart = await Cart.findOne({ 'cartItems.product': product._id });
+    if (cart) {
+      res.status(400);
+      throw new Error("Cannot disable in-cart product");
+    }
+    product.isDisabled = req.body.isDisabled;
+    await product.save();
+    res.status(200);
+    res.json({ message: "Product has been disabled" });
   })
 );
 
@@ -323,18 +327,20 @@ productRouter.delete(
     if (!product) {
       res.status(404);
       throw new Error("Product not found");
-    } else {
-      const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
-      if (order) {
-        res.status(400);
-        throw new Error("Cannot delete ordered product");
-      }
-      else {
-        await product.remove();
-        res.status(200);
-        res.json({ message: "Product has been deleted"});
-      }
+    } 
+    const order = await Order.findOne({ 'orderItems.product': product._id, isDisabled: false });        
+    if (order) {
+      res.status(400);
+      throw new Error("Cannot delete ordered product");
     }
+    const cart = await Cart.findOne({ 'cartItems.product': product._id });
+    if (cart) {
+      res.status(400);
+      throw new Error("Cannot delete in-cart product");
+    }
+    await product.remove();
+    res.status(200);
+    res.json({ message: "Product has been deleted"});
   })
 );
 
