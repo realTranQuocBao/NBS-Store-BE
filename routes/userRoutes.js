@@ -276,20 +276,34 @@ userRouter.delete(
         res.status(400);
         throw new Error("Cannot delete user who had ordered");
       }
-      const session = mongoose.startSession();
-      (await session).withTransaction(async () => {
-        const deletedUser = await User.findOneAndDelete({ _id: user._id });
-        if (!deletedUser) {
-          throw new Error("Something wrong while deleting user");
-        }
-        const deletedCart = await Cart.findOneAndDelete({ user: deletedUser._id });
-        if (!deletedCart) {
-          throw new Error("Something wrong while deleting user cart");
-        }
-        res.status(200);
-        res.json({ message: "User has been deleted"});
-      });
-      (await session).endSession(); 
+      const session = await mongoose.startSession();
+      const transactionOptions = {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        writeConcern: { w: 'majority' },
+      };
+      try {
+        await session.withTransaction(async () => {
+          const deletedUser = await User.findOneAndDelete({ _id: user._id }).session(session);
+          if (!deletedUser) {
+            await session.abortTransaction();
+            throw new Error("Something wrong while deleting user");
+          }
+          const deletedCart = await Cart.findOneAndDelete({ user: deletedUser._id }).session(session);
+          if (!deletedCart) {
+            await session.abortTransaction();
+            throw new Error("Something wrong while deleting user cart");
+          }
+          res.status(200);
+          res.json({ message: "User has been deleted"});
+        }, transactionOptions);
+      }
+      catch(error) {
+        next(error);
+      }
+      finally {
+        await session.endSession(); 
+      }
   })
 );
 
