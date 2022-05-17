@@ -129,12 +129,16 @@ producerRouter.put(
       if (!producer) {
         res.status(404);
         throw new Error("Producer not found");
-      } else {
-        producer.isDisabled = req.body.isDisabled;
-        const updateProducer = await producer.save();
-        res.status(200);
-        res.json(updateProducer);
       }
+      const duplicatedProducer = await Producer.findOne({ name: producer.name, isDisabled: false });
+      if (duplicatedProducer) {
+        res.status(400);
+        throw new Error("Restore this producer will result in duplicated producer name");
+      }
+      producer.isDisabled = req.body.isDisabled;
+      const updateProducer = await producer.save();
+      res.status(200);
+      res.json(updateProducer);
     })
   );
 

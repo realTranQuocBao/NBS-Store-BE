@@ -134,12 +134,16 @@ categoryRouter.patch(
     if (!category) {
       res.status(404);
       throw new Error("Category not found");
-    } else {
-      category.isDisabled = req.body.isDisabled;
-      const updateCategory = await category.save();
-      res.status(200);
-      res.json(updateCategory);
     }
+    const duplicatedCategory = await Category.findOne({ name: category.name, isDisabled: false });
+    if (duplicatedCategory) {
+      res.status(400);
+      throw new Error("Restore this category will result in duplicated category name");
+    }
+    category.isDisabled = req.body.isDisabled;
+    const updateCategory = await category.save();
+    res.status(200);
+    res.json(updateCategory);
   })
 );
 

@@ -241,19 +241,16 @@ userRouter.patch(
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } else {
-      const order = await Order.findOne({ user: user._id, isDisabled: false });
-      if (order) {
-        res.status(400);
-        throw new Error("Cannot disable user who had ordered");
-      }
-      else {
-        user.isDisabled = req.body.isDisabled;
-        await user.save();
-        res.status(200);
-        res.json({ message: "User has been disabled" });
-      }
     }
+    const order = await Order.findOne({ user: user._id, isDisabled: false });
+    if (order) {
+      res.status(400);
+      throw new Error("Cannot disable user who had ordered");
+    }
+    user.isDisabled = req.body.isDisabled;
+    await user.save();
+    res.status(200);
+    res.json({ message: "User has been disabled" });
   })
 );
 
@@ -264,16 +261,20 @@ userRouter.patch(
   admin,
   expressAsyncHandler(async (req, res) => {
     const userId = req.params.id ? req.params.id : null;
-    const user = await Order.findOne({ _id: userId, isDisabled: true }).select({ cart: 0 });
+    const user = await Order.findOne({ _id: userId, isDisabled: true });
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } else {
-      user.isDisabled = req.body.isDisabled;
-      const updateUser = await user.save();
-      res.status(200);
-      res.json(updateUser);
     }
+    const duplicatedUser = await User.findOne({ name: user.name, isDisabled: false });
+    if (duplicatedUser) {
+      res.status(400);
+      throw new Error("Restore this user will result in duplicated user name");
+    }
+    user.isDisabled = req.body.isDisabled;
+    const updateUser = await user.save();
+    res.status(200);
+    res.json(updateUser);
   })
 );
 

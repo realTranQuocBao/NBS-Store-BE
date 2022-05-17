@@ -305,12 +305,16 @@ productRouter.patch(
     if (!product) {
       res.status(404);
       throw new Error("Product not found");
-    } else {
-      product.isDisabled = req.body.isDisabled;
-      const updateProduct = await product.save();
-      res.status(200);
-      res.json(updateProduct);
     }
+    const duplicatedProduct = await Product.findOne({ name: product.name, isDisabled: false });
+    if (duplicatedProduct) {
+      res.status(400);
+      throw new Error("Restore this product will result in duplicated product name");
+    }
+    product.isDisabled = req.body.isDisabled;
+    const updateProduct = await product.save();
+    res.status(200);
+    res.json(updateProduct);
   })
 );
 
