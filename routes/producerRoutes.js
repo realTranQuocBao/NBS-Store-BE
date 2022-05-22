@@ -109,7 +109,7 @@ producerRouter.put(
           throw new Error("Cannot disable producer with products");
         }
         else {
-          producer.isDisabled = req.body.isDisabled;
+          producer.isDisabled = true;
           await producer.save();
           res.status(200);
           res.json({ message: "Producer has been disabled" });
@@ -135,7 +135,7 @@ producerRouter.put(
         res.status(400);
         throw new Error("Restore this producer will result in duplicated producer name");
       }
-      producer.isDisabled = req.body.isDisabled;
+      producer.isDisabled = false;
       const updateProducer = await producer.save();
       res.status(200);
       res.json(updateProducer);

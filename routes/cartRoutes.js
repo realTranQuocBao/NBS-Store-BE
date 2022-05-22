@@ -12,7 +12,7 @@ cartRouter.get(
     "/",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user.id ? req.user.id : null;
+        const userId = req.user._id ? req.user._id : null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);
@@ -28,7 +28,7 @@ cartRouter.post(
     "/",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user.id ? req.user.id : null;
+        const userId = req.user._id ? req.user._id : null;
         const existedCart = await Cart.findOne({ user: userId });
         if (existedCart) {
             res.status(400);
@@ -48,7 +48,7 @@ cartRouter.patch(
     "/add",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user.id ? req.user.id : null;
+        const userId = req.user._id ? req.user._id : null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);
@@ -89,7 +89,7 @@ cartRouter.patch(
     "/update",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user.id ? req.user.id : null;
+        const userId = req.user._id ? req.user._id : null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);
@@ -122,7 +122,7 @@ cartRouter.patch(
     "/remove",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user.id ? req.user.id : null;
+        const userId = req.user._id ? req.user._id : null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);

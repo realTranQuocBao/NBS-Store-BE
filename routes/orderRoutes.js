@@ -250,7 +250,7 @@ orderRouter.patch(
       res.status(404);
       throw new Error("Order not found");
     } 
-    order.isDisabled = req.body.isDisabled;
+    order.isDisabled = true;
     await order.save();
     res.status(200);
     res.json({ message: "Order has been disabled" });
@@ -269,7 +269,7 @@ orderRouter.patch(
       res.status(404);
       throw new Error("Order not found");
     } else {
-      order.isDisabled = req.body.isDisabled;
+      order.isDisabled = save;
       const updateOrder = await order.save();
       res.status(200);
       res.json(updateOrder);

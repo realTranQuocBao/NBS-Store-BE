@@ -114,7 +114,7 @@ categoryRouter.patch(
         throw new Error("Cannot disable category with products");
       }
       else {
-        category.isDisabled = req.body.isDisabled;
+        category.isDisabled = true;
         await category.save();
         res.status(200);
         res.json({ message: "Category has been disabled" });
@@ -140,7 +140,7 @@ categoryRouter.patch(
       res.status(400);
       throw new Error("Restore this category will result in duplicated category name");
     }
-    category.isDisabled = req.body.isDisabled;
+    category.isDisabled = false;
     const updateCategory = await category.save();
     res.status(200);
     res.json(updateCategory);
