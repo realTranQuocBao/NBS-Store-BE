@@ -157,18 +157,15 @@ categoryRouter.delete(
     if (!category) {
       res.status(404);
       throw new Error("Category not found");
-    } else {
-      const product = await Product.findOne({ category: category._id });
-      if (product) {
-        res.status(400);
-        throw new Error("Cannot disable category with products");
-      }
-      else {
-        await category.remove();
-        res.status(200);
-        res.json({ message: "Category has been deleted"});
-      }
+    } 
+    const product = await Product.findOne({ category: category._id });
+    if (product) {
+      res.status(400);
+      throw new Error("Cannot disable category with products");
     }
+    await category.remove();
+    res.status(200);
+    res.json({ message: "Category has been deleted"});
   })
 );
 

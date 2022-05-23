@@ -20,23 +20,19 @@ producerRouter.post(
             res.status(400);
             throw new Error("Producer name is already exist");
         }
-        else {
-            const newProducer = new Producer({
-                name,
-                code,
-                keyword,
-                createdBy,
-                updatedBy, 
-            });
-            if (newProducer) {
-                const createdProducer = await newProducer.save();
-                res.status(201).json(createdProducer);
-            }
-            else {
-                res.status(400);
-                throw new Error("Invalid Producer data");
-            }
+        const newProducer = new Producer({
+            name,
+            code,
+            keyword,
+            createdBy,
+            updatedBy, 
+        });
+        if (!newProducer) {
+            res.status(400);
+            throw new Error("Invalid Producer data");
         }
+        const createdProducer = await newProducer.save();
+        res.status(201).json(createdProducer);
     })
     );
 
@@ -77,7 +73,7 @@ producerRouter.put(
     expressAsyncHandler(async (req, res) => {
       const { name, code, keyword } = req.body;
       const producerId = req.params.id ? req.params.id : null;
-      const producer = await Producer.findOne({ _id: producer, isDisabled: false });
+      const producer = await Producer.findOne({ _id: producerId, isDisabled: false });
       if (producer) {
         producer.name = name || producer.name;
         producer.code = code || producer.code;
@@ -98,7 +94,8 @@ producerRouter.put(
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-      const producer = await Producer.findById(req.params.id);
+      const producerId = req.params.id ? req.params.id : null;
+      const producer = await Producer.findOne({ _id: producerId, isDisabled: false });
       if (!producer) {
         res.status(404);
         throw new Error("Producer not found");
@@ -108,12 +105,10 @@ producerRouter.put(
           res.status(400);
           throw new Error("Cannot disable producer with products");
         }
-        else {
-          producer.isDisabled = true;
-          await producer.save();
-          res.status(200);
-          res.json({ message: "Producer has been disabled" });
-        }
+        producer.isDisabled = true;
+        await producer.save();
+        res.status(200);
+        res.json({ message: "Producer has been disabled" });
       }
     })
   );

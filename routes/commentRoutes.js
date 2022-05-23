@@ -8,6 +8,7 @@ import Product from "../models/ProductModel.js";
 
 const commentRouter = express.Router();
 
+//user post comment
 commentRouter.post(
     "/",
     protect,
@@ -19,11 +20,11 @@ commentRouter.post(
       const [existedUser, existedProduct] = await Promise.all([findUser, findProduct]);
       if (!existedUser) {
         res.status(400);
-        throw new Error("User not found");
+        throw new Error("Invalid user id");
       }
       if (!existedProduct) {
         res.status(400);
-        throw new Error("Product not found");
+        throw new Error("Invalid product id");
       }
       let existedParentComment;
       if (parentCommentId) {
@@ -51,26 +52,13 @@ commentRouter.post(
           //res.status(200);
           //res.json(existedParentComment);
         }
-        res.status(200);
+        res.status(201);
         res.json(createdComment);
       }
     })
 );
 
-commentRouter.get(
-  "/:productId",
-  expressAsyncHandler(async (req, res) => { 
-    const product = await Product.findOne({ _id: req.params.productId, isDisabled: false });
-    if (!product) {
-      res.status(404);
-      throw new Error("Product not found");
-    }
-    const comments = await Comment.find({ product: product._id, parentComment: undefined, isDisabled: false });
-    res.status(200);
-    res.json(comments);
-  })
-);
-
+//non-user, user get comment replies
 commentRouter.get(
   "/:parentCommentId/reply",
   expressAsyncHandler(async (req, res) => {
@@ -86,13 +74,20 @@ commentRouter.get(
   })
 );
 
+//user, admin delete comment
 commentRouter.delete(
   "/:commentId",
+  protect,
   expressAsyncHandler(async (req, res) => {
     const commentId = req.params.commentId ? req.params.commentId : null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: false });
     if (!comment) {
+      res.status(404);
       throw new Error("Comment not found in deleteCommentById function");
+    }
+    if (req.user._id.toString() !== comment.user.toString() && !req.user.isAdmin) {
+      res.status(400);
+      throw new Error("User cannot delete other users comment");
     }
     let deletedComment;
     if (!comment.parentComment) {
@@ -110,31 +105,42 @@ commentRouter.delete(
   })
 )
 
+//user, admin change comment content
 commentRouter.patch(
   "/:commentId/content",
   protect,
   expressAsyncHandler(async (req, res) => {
     const commentId = req.params.commentId ? req.params.commentId : null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: false });
-    const { content } = req.body;
     if (!comment) {
       res.status(404);
       res.json("Comment not found");
     }  
-    comment.content = content;
+    if (req.user._id.toString() !== comment.user.toString() && !req.user.isAdmin) {
+      res.status(400);
+      throw new Error("User cannot change other users comment");
+    }
+    comment.content = req.body.content;
     const updatedComment = await comment.save();
     res.status(200);
     res.json(updatedComment); 
   })
 );
 
+//user, admin disable comment
 commentRouter.patch(
   "/:commentId/disable",
+  protect,
   expressAsyncHandler(async (req, res) => {
     const commentId = req.params.commentId ? req.params.commentId : null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: false });    
     if (!comment) {
+      res.json(404);
       throw new Error("Comment not found");
+    }
+    if (req.user._id.toString() !== comment.user.toString() && !req.user.isAdmin) {
+      res.status(400);
+      throw new Error("User cannot disable other users comment");
     }
     const disabledComment = await Comment.findByIdAndUpdate(commentId, { isDisabled: true }, { new: true });
     if (!disabledComment) {
@@ -146,13 +152,20 @@ commentRouter.patch(
   })
 )
 
+//user, admin restore comment
 commentRouter.patch(
   "/:commentId/restore",
+  protect,
   expressAsyncHandler(async (req, res) => {
     const commentId = req.params.commentId ? req.params.commentId : null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: true });    
     if (!comment) {
+      res.status(404);
       throw new Error("Comment not found");
+    }
+    if (req.user._id.toString() !== comment.user.toString() && !req.user.isAdmin) {
+      res.status(400);
+      throw new Error("User cannot restore other users comment");
     }
     const restoredComment =  await Comment.findByIdAndUpdate(commentId, { isDisabled: false }, { new: true });
     if (!restoredComment) {
