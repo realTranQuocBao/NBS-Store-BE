@@ -4,10 +4,8 @@ import Product from "../models/ProductModel.js";
 import Category from "../models/CategoryModel.js";
 import Order from "../models/OrderModel.js";
 import Cart from "../models/CartModel.js";
-import Comment from "../models/CommentModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import { searchConstants, validateConstants } from "../constants/searchConstants.js";
-import User from "../models/UserModel.js";
 
 const productRouter = express.Router();
 
@@ -193,43 +191,39 @@ productRouter.get(
  * SWAGGER SETUP: ok
  */
 productRouter.post(
-  "/:id/rating",
+  "/:id/review",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const { rating } = req.body;
+    const { rating, comment } = req.body;
     const productId = req.params.id ? req.params.id : null;
     const product = await Product.findOne({ _id: productId, isDisabled: false });
-    if (!product) {
+    if (product) {
+      const alreadyReviewed = product.reviews.find(
+        (reviewItem) => reviewItem.user.toString() === req.user._id.toString()
+      );
+      if (alreadyReviewed) {
+        res.status(400);
+        throw new Error("Product already reviewed");
+      }
+      //else
+      const review = {
+        name: req.user.name,
+        rating: Number(rating),
+        comment,
+        user: req.user._id,
+      };
+      product.reviews.push(review);
+      product.numReview = product.reviews.length;
+      product.rating = product.reviews.reduce(
+        (previousValue, curentReview) => curentReview.rating + previousValue,
+        0
+      );
+      await product.save();
+      res.status(201).json({ message: "Added review" });
+    } else {
       res.status(404);
       throw new Error("Product not Found");
     }
-    const orders = await Order.find({ user: req.user._id, 'orderItems.product': product._id, isDisabled: false });
-    const totalOrdered = orders.length;
-    const totalReviewed = product.reviews.reduce(
-      (previousValue, currentReview) => {
-        if (currentReview.user.toString() === req.user._id.toString()) {
-          previousValue++;
-        }
-        return previousValue;
-      }
-    , 0);
-    if (totalOrdered <= totalReviewed) {
-      res.status(400);
-      throw new Error("Product already rated");
-    }
-      //else
-    const review = {
-      name: req.user.name,
-      rating: Number(rating),
-      user: req.user._id,
-    };
-    product.reviews.push(review);
-    product.numReviews = product.reviews.length;
-    product.rating = product.reviews.reduce(
-      (previousValue, curentReview) => curentReview.rating + previousValue
-    , 0) / product.numReviews;
-    await product.save();
-    res.status(201).json({ message: "Added rating" });
   })
 );
 
@@ -293,10 +287,8 @@ productRouter.patch(
       res.status(400);
       throw new Error("Cannot disable in-cart product");
     }
-    product.isDisabled = true;
-    const disabledProduct = await product.save();
-    //disable comments
-    await Comment.updateMany({ product: disabledProduct._id }, { isDisabled: true });
+    product.isDisabled = req.body.isDisabled;
+    await product.save();
     res.status(200);
     res.json({ message: "Product has been disabled" });
   })
@@ -309,29 +301,16 @@ productRouter.patch(
   admin, 
   expressAsyncHandler(async (req, res) => {
     const productId = req.params.id ? req.params.id : null;
-    const product = await Product.findOne({ _id: productId, isDisabled: true });
+    const product = await Order.findOne({ _id: productId, isDisabled: true });
     if (!product) {
       res.status(404);
       throw new Error("Product not found");
+    } else {
+      product.isDisabled = req.body.isDisabled;
+      const updateProduct = await product.save();
+      res.status(200);
+      res.json(updateProduct);
     }
-    const duplicatedProduct = await Product.findOne({ name: product.name, isDisabled: false });
-    if (duplicatedProduct) {
-      res.status(400);
-      throw new Error("Restore this product will result in duplicated product name");
-    }
-    product.isDisabled = false;
-    const restoredProduct = await product.save();
-    //restore comments
-    const comments = await Comment.find({ product: restoredProduct._id, isDisabled: true });
-    for (const comment of comments) {
-      const user = await User.findById(comment.user);
-      if (user.isDisabled == false) {
-        comment.isDisabled = false;
-        comment.save();
-      }
-    }
-    res.status(200);
-    res.json(restoredProduct);
   })
 );
 
@@ -359,13 +338,10 @@ productRouter.delete(
       res.status(400);
       throw new Error("Cannot delete in-cart product");
     }
-    const deletedProduct = await product.remove();
-    //delete comments
-    await Comment.deleteMany({ product: deletedProduct._id });
+    await product.remove();
     res.status(200);
     res.json({ message: "Product has been deleted"});
   })
 );
-
 
 export default productRouter;

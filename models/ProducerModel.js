@@ -29,7 +29,7 @@ const ProducerSchema = mongoose.Schema(
         isDisabled: {
             type: Boolean,
             required: false,
-            default: false,
+            default: true,
         },
     },
     {

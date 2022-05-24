@@ -11,6 +11,10 @@ const reviewSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    comment: {
+      type: String,
+      required: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -57,7 +61,7 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     reviews: [reviewSchema],
-    //comments: [commentSchema],
+    comments: [commentSchema],
     category: {
       type: mongoose.Schema.Types.ObjectId,
       required: false,

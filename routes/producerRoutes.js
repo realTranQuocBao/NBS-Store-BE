@@ -20,19 +20,23 @@ producerRouter.post(
             res.status(400);
             throw new Error("Producer name is already exist");
         }
-        const newProducer = new Producer({
-            name,
-            code,
-            keyword,
-            createdBy,
-            updatedBy, 
-        });
-        if (!newProducer) {
-            res.status(400);
-            throw new Error("Invalid Producer data");
+        else {
+            const newProducer = new Producer({
+                name,
+                code,
+                keyword,
+                createdBy,
+                updatedBy, 
+            });
+            if (newProducer) {
+                const createdProducer = await newProducer.save();
+                res.status(201).json(createdProducer);
+            }
+            else {
+                res.status(400);
+                throw new Error("Invalid Producer data");
+            }
         }
-        const createdProducer = await newProducer.save();
-        res.status(201).json(createdProducer);
     })
     );
 
@@ -73,7 +77,7 @@ producerRouter.put(
     expressAsyncHandler(async (req, res) => {
       const { name, code, keyword } = req.body;
       const producerId = req.params.id ? req.params.id : null;
-      const producer = await Producer.findOne({ _id: producerId, isDisabled: false });
+      const producer = await Producer.findOne({ _id: producer, isDisabled: false });
       if (producer) {
         producer.name = name || producer.name;
         producer.code = code || producer.code;
@@ -94,8 +98,7 @@ producerRouter.put(
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-      const producerId = req.params.id ? req.params.id : null;
-      const producer = await Producer.findOne({ _id: producerId, isDisabled: false });
+      const producer = await Producer.findById(req.params.id);
       if (!producer) {
         res.status(404);
         throw new Error("Producer not found");
@@ -105,10 +108,12 @@ producerRouter.put(
           res.status(400);
           throw new Error("Cannot disable producer with products");
         }
-        producer.isDisabled = true;
-        await producer.save();
-        res.status(200);
-        res.json({ message: "Producer has been disabled" });
+        else {
+          producer.isDisabled = req.body.isDisabled;
+          await producer.save();
+          res.status(200);
+          res.json({ message: "Producer has been disabled" });
+        }
       }
     })
   );
@@ -124,16 +129,12 @@ producerRouter.put(
       if (!producer) {
         res.status(404);
         throw new Error("Producer not found");
+      } else {
+        producer.isDisabled = req.body.isDisabled;
+        const updateProducer = await producer.save();
+        res.status(200);
+        res.json(updateProducer);
       }
-      const duplicatedProducer = await Producer.findOne({ name: producer.name, isDisabled: false });
-      if (duplicatedProducer) {
-        res.status(400);
-        throw new Error("Restore this producer will result in duplicated producer name");
-      }
-      producer.isDisabled = false;
-      const updateProducer = await producer.save();
-      res.status(200);
-      res.json(updateProducer);
     })
   );
 
