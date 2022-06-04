@@ -47,6 +47,25 @@ categoryRouter.get(
   })
 );
 
+//Admin get all disabled categories
+categoryRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const categories = await Category.find({ isDisabled: true });
+    if (categories.length != 0) {
+      res.status(200);
+      res.json(categories);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No categories are disabled"} );
+    }
+  })
+);
+
+
 //User, non-user get all catgories
 categoryRouter.get(
   "/",
@@ -95,7 +114,7 @@ categoryRouter.patch(
         throw new Error("Cannot disable category with products");
       }
       else {
-        category.isDisabled = req.body.isDisabled;
+        category.isDisabled = true;
         await category.save();
         res.status(200);
         res.json({ message: "Category has been disabled" });
@@ -115,12 +134,16 @@ categoryRouter.patch(
     if (!category) {
       res.status(404);
       throw new Error("Category not found");
-    } else {
-      category.isDisabled = req.body.isDisabled;
-      const updateCategory = await category.save();
-      res.status(200);
-      res.json(updateCategory);
     }
+    const duplicatedCategory = await Category.findOne({ name: category.name, isDisabled: false });
+    if (duplicatedCategory) {
+      res.status(400);
+      throw new Error("Restore this category will result in duplicated category name");
+    }
+    category.isDisabled = false;
+    const updateCategory = await category.save();
+    res.status(200);
+    res.json(updateCategory);
   })
 );
 
@@ -134,18 +157,15 @@ categoryRouter.delete(
     if (!category) {
       res.status(404);
       throw new Error("Category not found");
-    } else {
-      const product = await Product.findOne({ category: category._id });
-      if (product) {
-        res.status(400);
-        throw new Error("Cannot disable category with products");
-      }
-      else {
-        await category.remove();
-        res.status(200);
-        res.json({ message: "Category has been deleted"});
-      }
+    } 
+    const product = await Product.findOne({ category: category._id });
+    if (product) {
+      res.status(400);
+      throw new Error("Cannot disable category with products");
     }
+    await category.remove();
+    res.status(200);
+    res.json({ message: "Category has been deleted"});
   })
 );
 

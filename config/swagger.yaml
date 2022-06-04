@@ -282,10 +282,6 @@ paths:
                   minimum: 1
                   maximum: 5
                   nullable: false
-                comment:
-                  type: string
-                  description: User reviews (1 review per user)
-                  nullable: false
       responses:
         '201':
           description: Success
@@ -1475,7 +1471,7 @@ paths:
                   $ref: '#/components/schemas/Category'
   /api/v1/producer/{id}: 
     put:
-      summary: Update exsited producer
+      summary: Update existed producer
       tags:
         - Producer
       security:
@@ -1657,7 +1653,408 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'               
+                $ref: '#/components/schemas/Error'
+  /api/v1/cart/: 
+    get:
+      summary:  User get cart
+      description: User get cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/cart/add: 
+    patch:
+      summary:  User add product into cart
+      description: User add product into cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Cart item payload
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+                  description: Cart item product id
+                  nullable: false
+                qty:
+                  type: string
+                  description: Cart item quantity
+                  default: 1      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/cart/update: 
+    patch:
+      summary:  User update existed cart item
+      description: User update existed cart item
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Cart item payload
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+                  description: Cart item product id
+                  nullable: false
+                qty:
+                  type: string
+                  description: Cart item quantity
+                  default: 1      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+        '204':
+          description: No Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'      
+  /api/v1/cart/remove: 
+    patch:
+      summary:  User remove selected cart items
+      description: User remove selected car items
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Product id array
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/comment: 
+    post:
+      summary:  User post new comment
+      description: User post new comment
+      tags:
+        - Comment
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Comment payload
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/CommentForm'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'  
+  /api/v1/comment/{parentCommentId}/reply: 
+    get:
+      summary:  User, non-user get comment replies
+      description: User, non-user get comment replies
+      tags:
+        - Comment
+      parameters:
+        - name: parentCommentId
+          in: path
+          description: Parent Comment Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/comment/{commentId}: 
+    delete:
+      summary:  User, admin delete comment
+      description: User, admin delete comment
+      tags:
+        - Comment
+      parameters:
+        - name: commentId
+          in: path
+          description: Comment Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/comment/{commentId}/content: 
+    patch:
+      summary:  User, admin change comment
+      description: User, admin change comment
+      tags:
+        - Comment
+      parameters:
+        - name: commentId
+          in: path
+          description: Comment Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Comment content
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Comment content
+                  nullable: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/comment/{commentId}/disable: 
+    patch:
+      summary:  User, admin disable comment
+      description: User, admin disable comment
+      tags:
+        - Comment
+      parameters:
+        - name: commentId
+          in: path
+          description: Comment Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /api/v1/comment/{commentId}/restore: 
+    patch:
+      summary:  User, admin restore comment
+      description: User, admin restore comment
+      tags:
+        - Comment
+      parameters:
+        - name: commentId
+          in: path
+          description: Comment Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"
@@ -1837,9 +2234,6 @@ components:
           description: User ratings (5-stars rating)
           minimum: 1
           maximum: 5
-        comment:
-          type: string
-          description: User reviews (1 review per user)
         user:
           type: string
           description: User ID
@@ -2043,7 +2437,7 @@ components:
           type: boolean
           description: Category status
           default: true    
-        timestampt:
+        timestamp:
           $ref: '#/components/schemas/Timestamp' 
         createdBy:
           type: string
@@ -2088,7 +2482,7 @@ components:
           type: boolean
           description: Producer status
           default: true
-        timestampt:
+        timestamp:
           $ref: '#/components/schemas/Timestamp' 
         createdBy:
           type: string
@@ -2098,7 +2492,80 @@ components:
           description: User object id who updated this record
         isDisabled:
           type: boolean
-          description: is Disabled or not                                                        
+          description: is Disabled or not
+    CartItem:
+      type: object
+      properties:
+        product: 
+          type: string
+          description: Cart item product id
+        qty: 
+          type: number
+          description: Cart item quantity
+          minimum: 0
+        _id: 
+          type: string
+          description: Cart item object id
+    Cart:
+      type: object
+      properties:
+        _id: 
+          type: string
+          description: Cart Object id
+        user: 
+          type: string
+          description: User id
+        cartItems:
+          type: array 
+          items: 
+            $ref: '#/components/schemas/CartItem'
+        __v:
+          type: number
+          description: Document version key
+    Comment:
+      type: object
+      properties:
+        _id: 
+          type: string
+          description: Cart Object id
+        user: 
+          type: string
+          description: User id
+        product:
+          type: string 
+          description: Product object id
+        content: 
+          type: string
+          description: Comment content
+        parentComment:
+          type: string
+          description: Parent comment object id
+        replies:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Comment'
+          description: Commnet replies
+        isDisabled:
+          type: boolean
+          description: is Disabled or not
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+        __v:
+          type: number
+          description: Document version key
+    CommentForm:
+      type: object
+      properties:
+        productId:
+          type: string 
+          description: Product object id
+        content: 
+          type: string
+          description: Comment content
+        parentCommentId:
+          type: string
+          description: Parent comment object id
+          nullable: true
   # 1) Define the security scheme type (HTTP bearer)
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme

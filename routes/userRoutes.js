@@ -5,9 +5,13 @@ import generateToken from "../utils/generateToken.js";
 import resize from "./../utils/resizeImage.js";
 import User from "../models/UserModel.js";
 import Order from "../models/OrderModel.js";
+import Cart from "../models/CartModel.js";
+import Comment from "../models/CommentModel.js";
 import { upload } from "./../middleware/UploadMiddleware.js";
 import path from "path";
 import fs from "fs";
+import mongoose from "mongoose";
+import Product from "../models/ProductModel.js";
 const __dirname = path.resolve();
 
 const userRouter = express.Router();
@@ -53,12 +57,26 @@ userRouter.post(
       throw new Error("Email of user already exists");
     }
     //else
-    const newUser = await User.create({
-      name,
-      email,
-      password,
-    });
-    if (newUser) {
+    const session = mongoose.startSession();
+    (await session).withTransaction(async () => {
+      const newUser = await User.create({
+        name,
+        email,
+        password,
+      });
+      if (!newUser) {
+        res.status(400);
+        throw new Error("Invalid user data");
+      } 
+      const newCart = await Cart.create({
+        user: newUser._id,
+        cartItems: [],
+      });
+      if (!newCart) {
+        //Note: không biết trả về status với error gì cho hợp lý.
+        res.status(400);
+        throw new Error("Failed to create user cart");
+      } 
       res.status(201).json({
         _id: newUser._id,
         name: newUser.name,
@@ -68,10 +86,8 @@ userRouter.post(
         isDisabled: newUser.isDisabled,
         token: generateToken(newUser._id),
       });
-    } else {
-      res.status(400);
-      throw new Error("Invalid user data");
-    }
+    });
+    (await session).endSession();
   })
 );
 
@@ -83,7 +99,7 @@ userRouter.get(
   "/profile",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const userId = req.user.id ? req.user.id : null;
+    const userId = req.user._id ? req.user._id : null;
     const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user) {
       res.json({
@@ -107,7 +123,7 @@ userRouter.get(
  * SWAGGER SETUP: no
  */
 userRouter.put("/profile", protect, async (req, res) => {
-  const userId = req.user.id ? req.user.id : null;
+  const userId = req.user._id ? req.user._id : null;
   const user = await User.findOne({ _id: userId, isDisabled: false });
   if (user) {
     user.name = req.body.name || user.name;
@@ -141,8 +157,26 @@ userRouter.get(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const users = await User.find({ isDisabled: false });
+    const users = await User.find({ isDisabled: false }).select({ cart: 0 });
     res.json(users);
+  })
+);
+
+//Admin get all disabled users
+userRouter.get(
+  "/disabled",
+  protect,
+  admin,
+  expressAsyncHandler(async (req, res) => {
+    const users = await User.find({ isDisabled: true }).select({ cart: 0 });
+    if (users.length != 0) {
+      res.status(200);
+      res.json(users);
+    }
+    else {
+      res.status(204);
+      res.json({ message: "No users are disabled"} );
+    }
   })
 );
 
@@ -155,7 +189,7 @@ userRouter.post(
   protect,
   upload.single("file"),
   expressAsyncHandler(async (req, res) => {
-    const userId = req.user.id ? req.user.id : null;
+    const userId = req.user._id ? req.user._id : null;
     const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user.isAdmin && req.params.userId) {
       user = await User.findById(req.params.userId);
@@ -205,23 +239,23 @@ userRouter.patch(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id);
+    const userId = req.params.id ? req.params.id : null;
+    const user = await User.findOne({ _id: userId, isDisabled: false });
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } else {
-      const order = await Order.findOne({ user: user._id, isDisabled: false });
-      if (order) {
-        res.status(400);
-        throw new Error("Cannot disable user who had ordered");
-      }
-      else {
-        user.isDisabled = req.body.isDisabled;
-        await user.save();
-        res.status(200);
-        res.json({ message: "User has been disabled" });
-      }
     }
+    const order = await Order.findOne({ user: user._id, isDisabled: false });
+    if (order) {
+      res.status(400);
+      throw new Error("Cannot disable user who had ordered");
+    }
+    user.isDisabled = true;
+    const disabledUser = await user.save();
+    //disable comments
+    await Comment.updateMany({ user: disabledUser }, { isDisabled: true });
+    res.status(200);
+    res.json({ message: "User has been disabled" });
   })
 );
 
@@ -232,16 +266,29 @@ userRouter.patch(
   admin,
   expressAsyncHandler(async (req, res) => {
     const userId = req.params.id ? req.params.id : null;
-    const user = await Order.findOne({ _id: userId, isDisabled: true });
+    const user = await User.findOne({ _id: userId, isDisabled: true });
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } else {
-      user.isDisabled = req.body.isDisabled;
-      const updateUser = await user.save();
-      res.status(200);
-      res.json(updateUser);
     }
+    const duplicatedUser = await User.findOne({ name: user.name, isDisabled: false });
+    if (duplicatedUser) {
+      res.status(400);
+      throw new Error("Restore this user will result in duplicated user name");
+    }
+    user.isDisabled = false;
+    const restoredUser = await user.save();
+    //restore comments
+    const userComments = await Comment.find({ user: restoredUser._id, isDisabled: true });
+    for (const comment of userComments) {
+      const linkedProduct = await Product.findById(comment.product);
+      if (linkedProduct.isDisabled == false) {
+        comment.isDisabled = false;
+        comment.save();
+      }
+    }
+    res.status(200);
+    res.json(restoredUser);
   })
 );
 
@@ -251,23 +298,48 @@ userRouter.delete(
   "/:id",
   protect,
   admin,
-  expressAsyncHandler(async (req, res) => {
+  expressAsyncHandler(async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } else {
+    } 
       const order = await Order.findOne({ user: user._id, isDisabled: false });
       if (order) {
         res.status(400);
         throw new Error("Cannot delete user who had ordered");
       }
-      else {
-        await user.remove();
-        res.status(200);
-        res.json({ message: "User has been deleted"});
+      const session = await mongoose.startSession();
+      const transactionOptions = {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        writeConcern: { w: 'majority' },
+      };
+      try {
+        await session.withTransaction(async () => {
+          const deletedUser = await User.findOneAndDelete({ _id: user._id }).session(session);
+          if (!deletedUser) {
+            await session.abortTransaction();
+            throw new Error("Something wrong while deleting user");
+          }
+          //delete cart
+          const deletedCart = await Cart.findOneAndDelete({ user: deletedUser._id }).session(session);
+          if (!deletedCart) {
+            await session.abortTransaction();
+            throw new Error("Something wrong while deleting user cart");
+          }
+          //delete comments
+          const deletedComments = await Comment.deleteMany({ user: deletedUser._id }).session(session);
+          res.status(200);
+          res.json({ message: "User has been deleted"});
+        }, transactionOptions);
       }
-    }
+      catch(error) {
+        next(error);
+      }
+      finally {
+        await session.endSession(); 
+      }
   })
 );
 
