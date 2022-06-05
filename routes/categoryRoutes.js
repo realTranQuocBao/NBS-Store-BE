@@ -82,18 +82,17 @@ categoryRouter.put(
     admin,
     expressAsyncHandler(async (req, res) => {
       const { name, slug } = req.body;
-      const categoryId = req.params.id ? req.params.id : null;
+      const categoryId = req.params.id || null;
       const category = await Category.findOne({ _id: categoryId, isDisabled: false });
-      if (category) {
-        category.name = name || category.name;
-        category.slug = slug || category.slug;
-        category.updatedBy = req.user._id;
-        const upadatedCategory = await category.save();
-        res.json(upadatedCategory);
-      } else {
+      if (!category) {
         res.status(404);
         throw new Error("Category not Found");
       }
+      category.name = name || category.name;
+      category.slug = slug || category.slug;
+      category.updatedBy = req.user._id;
+      const updatedCategory = await category.save();
+      res.json(updatedCategory);
     })
   );
 
@@ -107,19 +106,16 @@ categoryRouter.patch(
     if (!category) {
       res.status(404);
       throw new Error("Category not found");
-    } else {
-      const product = await Product.findOne({ category: category._id });
-      if (product) {
-        res.status(400);
-        throw new Error("Cannot disable category with products");
-      }
-      else {
-        category.isDisabled = true;
-        await category.save();
-        res.status(200);
-        res.json({ message: "Category has been disabled" });
-      }
     }
+    const product = await Product.findOne({ category: category._id });
+    if (product) {
+      res.status(400);
+      throw new Error("Cannot disable category with products");
+    }
+    category.isDisabled = true;
+    await category.save();
+    res.status(200);
+    res.json({ message: "Category has been disabled" });
   })
 );
 
@@ -129,7 +125,7 @@ categoryRouter.patch(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const categoryId = req.params.id ? req.params.id : null;
+    const categoryId = req.params.id || null;
     const category = await Category.findOne({ _id: categoryId, isDisabled: true });
     if (!category) {
       res.status(404);
@@ -168,6 +164,5 @@ categoryRouter.delete(
     res.json({ message: "Category has been deleted"});
   })
 );
-
 
 export default categoryRouter;

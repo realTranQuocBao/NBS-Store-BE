@@ -16,6 +16,7 @@ import categoryRouter from "./routes/categoryRoutes.js";
 import producerRouter from "./routes/producerRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
 import commentRouter from "./routes/commentRoutes.js";
+import refreshTokenRouter from "./routes/refreshTokenRoutes.js";
 
 // import swaggerJsdoc from "swagger-jsdoc";
 // import swaggerDocument from "./config/swagger.json";
@@ -37,6 +38,7 @@ app.use("/api/v1/category", categoryRouter);
 app.use("/api/v1/producer", producerRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/refreshToken",refreshTokenRouter);
 app.use("/api/v1/config/paypal", (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
