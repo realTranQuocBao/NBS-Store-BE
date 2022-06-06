@@ -53,9 +53,9 @@ refreshTokenRouter.patch(
         const newRefreshToken = generateToken(req.user._id, process.env.REFRESH_TOKEN_SECRET, process.env.REFRESH_TOKEN_EXPIRESIN);
         parentRefreshToken.refreshTokenItems.push(newRefreshToken);
         await parentRefreshToken.save();
-        res.status(201);
+        res.status(200);
         res.json({
-            accessToken: newAccessToken,
+            token: newAccessToken,
             refreshToken: newRefreshToken
         });
     })

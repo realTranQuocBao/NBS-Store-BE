@@ -63,7 +63,6 @@ cartRouter.patch(
         let statusCode;
         if (addedItemIndex !== -1) {
             cart.cartItems[addedItemIndex].qty += qty;
-            statusCode = 200;
         }
         else {
             const product = await Product.findOne({ _id: productId, isDisabled: false });
@@ -76,10 +75,9 @@ cartRouter.patch(
                 qty: qty,
             }        
             addedItemIndex = cart.cartItems.push(cartItem) - 1;
-            statusCode = 201;
         }
         const updatedCart = await cart.save();
-        res.status(statusCode);
+        res.status(200);
         res.json(updatedCart.cartItems[addedItemIndex]);
     })
 ); 
