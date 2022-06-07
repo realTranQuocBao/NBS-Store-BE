@@ -1,0 +1,14 @@
+{
+    "printWidth": 120,
+    "arrowParens": "always",
+    "semi": true,
+    "trailingComma": "none",
+    "editor.formatOnSave": true,
+    "endOfLine": "lf",
+    "singleQuote": false,
+    "useTabs": false,
+    "bracketSpacing": true,
+    "tabWidth": 4,
+    "jsxSingleQuote": false,
+    "jsxBracketSameLine": false
+}

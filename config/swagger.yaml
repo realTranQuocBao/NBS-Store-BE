@@ -621,7 +621,7 @@ paths:
         - name: userId
           in: path
           description: _id of the user that needs to update the avatar, if you is admin
-          required: true
+          required: false
           schema:
             type: string
       requestBody:
