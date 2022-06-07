@@ -447,6 +447,9 @@ paths:
                         type: string
                         description: created timestamp
                         format: date-time
+                      refreshToken:
+                        type: string
+                        description: JWT Refresh Token
         '401':
           description: Unauthorized
           content:
@@ -482,7 +485,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MyUser'
+                allOf:
+                  - $ref: '#/components/schemas/MyUser'
+                  - type: object
+                    properties:
+                      refreshToken:
+                        type: string
+                        description: JWT Refresh Token
         '400':
           description: Bad request
           content:
@@ -612,7 +621,7 @@ paths:
         - name: userId
           in: path
           description: _id of the user that needs to update the avatar, if you is admin
-          required: true
+          required: false
           schema:
             type: string
       requestBody:
@@ -1708,12 +1717,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CartItem'
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartItem'
         '400':
           description: Bad request
           content:
@@ -2055,6 +2058,51 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Error'
+  /api/v1/refreshToken:
+    patch:
+      summary: User refresh access token
+      tags:
+        - Refresh Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: JWT refresh token
+                  nullable: false
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                  refreshToken: 
+                    type: string
+                    description: JWT refresh token             
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'      
+
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"

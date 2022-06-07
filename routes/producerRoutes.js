@@ -72,19 +72,18 @@ producerRouter.put(
     admin,
     expressAsyncHandler(async (req, res) => {
       const { name, code, keyword } = req.body;
-      const producerId = req.params.id ? req.params.id : null;
+      const producerId = req.params.id || null;
       const producer = await Producer.findOne({ _id: producerId, isDisabled: false });
-      if (producer) {
-        producer.name = name || producer.name;
-        producer.code = code || producer.code;
-        producer.keyword = keyword || producer.keyword;
-        producer.updatedBy = req.user._id;
-        const upadatedProducer = await producer.save();
-        res.json(upadatedProducer);
-      } else {
+      if (!producer) {
         res.status(404);
         throw new Error("Producer not Found");
       }
+      producer.name = name || producer.name;
+      producer.code = code || producer.code;
+      producer.keyword = keyword || producer.keyword;
+      producer.updatedBy = req.user._id;
+      const updatedProducer = await producer.save();
+      res.json(updatedProducer);
     })
   );
 
@@ -94,22 +93,21 @@ producerRouter.put(
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-      const producerId = req.params.id ? req.params.id : null;
+      const producerId = req.params.id || null;
       const producer = await Producer.findOne({ _id: producerId, isDisabled: false });
       if (!producer) {
         res.status(404);
         throw new Error("Producer not found");
-      } else {
-        const product = await Product.findOne({ producer: producer._id });
-        if (product) {
-          res.status(400);
-          throw new Error("Cannot disable producer with products");
-        }
-        producer.isDisabled = true;
-        await producer.save();
-        res.status(200);
-        res.json({ message: "Producer has been disabled" });
       }
+      const product = await Product.findOne({ producer: producer._id });
+      if (product) {
+        res.status(400);
+        throw new Error("Cannot disable producer with products");
+      }
+      producer.isDisabled = true;
+      await producer.save();
+      res.status(200);
+      res.json({ message: "Producer has been disabled" });
     })
   );
 
@@ -119,7 +117,7 @@ producerRouter.put(
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-      const producerId = req.params.id ? req.params.id : null;
+      const producerId = req.params.id || null;
       const producer = await Producer.findOne({ _id: producerId, isDisabled: true });
       if (!producer) {
         res.status(404);
@@ -147,18 +145,15 @@ producerRouter.put(
       if (!producer) {
         res.status(404);
         throw new Error("Producer not found");
-      } else {
-        const product = await Product.findOne({ producer: producer._id });
-        if (product) {
-          res.status(400);
-          throw new Error("Cannot disable producer with products");
-        }
-        else {
-          await producer.remove();
-          res.status(200);
-          res.json({ message: "Producer has been deleted"});
-        }
       }
+      const product = await Product.findOne({ producer: producer._id });
+      if (product) {
+        res.status(400);
+        throw new Error("Cannot disable producer with products");
+      }
+      await producer.remove();
+      res.status(200);
+      res.json({ message: "Producer has been deleted"});
     })
   );  
 

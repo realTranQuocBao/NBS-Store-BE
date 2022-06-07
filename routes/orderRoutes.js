@@ -177,7 +177,7 @@ orderRouter.get(
   "/:id",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const orderId = req.params.id ? req.params.id : null;
+    const orderId = req.params.id || null;
     const order = await Order.findOne({ _id: orderId, isDisabled: false }).populate(
       "user",
       "name email"
@@ -198,23 +198,22 @@ orderRouter.patch(
   "/:id/pay",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const orderId = req.params.id ? req.params.id : null;
+    const orderId = req.params.id || null;
     const order = await Order.findOne({ _id: orderId, isDisabled: false });
-    if (order) {
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: req.body.id,
-        status: req.body.status,
-        update_time: req.body.update_time,
-        email_address: req.body.email_address,
-      };
-      const updateOrder = await order.save();
-      res.json(updateOrder);
-    } else {
+    if (!order) {
       res.status(404);
       throw new Error("Order Not Found");
     }
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: req.body.id,
+      status: req.body.status,
+      update_time: req.body.update_time,
+      email_address: req.body.email_address,
+    };
+    const updateOrder = await order.save();
+    res.json(updateOrder);
   })
 );
 
@@ -225,7 +224,7 @@ orderRouter.patch(
   "/:id/delivered",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const orderId = req.params.id ? req.params.id : null;
+    const orderId = req.params.id || null;
     const order = await Order.findOne({ _id: orderId, isDisabled: false });
     if (order) {
       order.isDelivered = true;
@@ -263,7 +262,7 @@ orderRouter.patch(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const orderId = req.params.id ? req.params.id : null;
+    const orderId = req.params.id || null;
     const order = await Order.findOne({ _id: orderId, isDisabled: true });
     if (!order) {
       res.status(404);

@@ -62,7 +62,7 @@ commentRouter.post(
 commentRouter.get(
   "/:parentCommentId/reply",
   expressAsyncHandler(async (req, res) => {
-    const parentCommentId = req.params.parentCommentId ? req.params.parentCommentId : null
+    const parentCommentId = req.params.parentCommentId || null
     const parentComment = await Comment.findOne({ _id: parentCommentId, isDisabled: false });
     if (!parentComment) {
       res.status(404);
@@ -79,7 +79,7 @@ commentRouter.delete(
   "/:commentId",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const commentId = req.params.commentId ? req.params.commentId : null
+    const commentId = req.params.commentId || null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: false });
     if (!comment) {
       res.status(404);
@@ -110,7 +110,7 @@ commentRouter.patch(
   "/:commentId/content",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const commentId = req.params.commentId ? req.params.commentId : null
+    const commentId = req.params.commentId || null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: false });
     if (!comment) {
       res.status(404);
@@ -132,7 +132,7 @@ commentRouter.patch(
   "/:commentId/disable",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const commentId = req.params.commentId ? req.params.commentId : null
+    const commentId = req.params.commentId || null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: false });    
     if (!comment) {
       res.json(404);
@@ -157,7 +157,7 @@ commentRouter.patch(
   "/:commentId/restore",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const commentId = req.params.commentId ? req.params.commentId : null
+    const commentId = req.params.commentId || null
     const comment = await Comment.findOne({ _id: commentId, isDisabled: true });    
     if (!comment) {
       res.status(404);

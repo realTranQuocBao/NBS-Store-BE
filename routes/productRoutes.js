@@ -8,6 +8,7 @@ import Comment from "../models/CommentModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import { searchConstants, validateConstants } from "../constants/searchConstants.js";
 import User from "../models/UserModel.js";
+import mongoose from "mongoose";
 
 const productRouter = express.Router();
 
@@ -34,13 +35,12 @@ productRouter.post("/", protect, admin, expressAsyncHandler(async (req, res) => 
       category,
       user: req.user._id,
     });
-    if (newProduct) {
-      const createdProduct = await newProduct.save();
-      res.status(201).json(createdProduct);
-    } else {
+    if (!newProduct) {
       res.status(400);
       throw new Error("Invalid product data");
     }
+    const createdProduct = await newProduct.save();
+    res.status(201).json(createdProduct);
   }
 })
 );
@@ -168,7 +168,7 @@ productRouter.get(
   "/:id",
   expressAsyncHandler(async (req, res) => {
     // console.log("Bảo nè");
-    const productId = req.params.id ? req.params.id : null;
+    const productId = req.params.id || null;
     const product = await Product.findOne({ _id: productId, isDisabled: false });
     // let product;
     // console.log("new", product);
@@ -195,9 +195,9 @@ productRouter.get(
 productRouter.post(
   "/:id/rating",
   protect,
-  expressAsyncHandler(async (req, res) => {
+  expressAsyncHandler(async (req, res, next) => {
     const { rating } = req.body;
-    const productId = req.params.id ? req.params.id : null;
+    const productId = req.params.id || null;
     const product = await Product.findOne({ _id: productId, isDisabled: false });
     if (!product) {
       res.status(404);
@@ -217,7 +217,8 @@ productRouter.post(
       res.status(400);
       throw new Error("Product already rated");
     }
-      //else
+    //.
+    //else
     const review = {
       name: req.user.name,
       rating: Number(rating),
@@ -229,7 +230,8 @@ productRouter.post(
       (previousValue, curentReview) => curentReview.rating + previousValue
     , 0) / product.numReviews;
     await product.save();
-    res.status(201).json({ message: "Added rating" });
+    res.status(201);
+    res.json({ message: "Added rating" });
   })
 );
 
@@ -243,7 +245,7 @@ productRouter.put(
   admin,
   expressAsyncHandler(async (req, res) => {
     const { name, price, description, image, countInStock, category } = req.body;
-    const productId = req.params.id ? req.params.id : null;
+    const productId = req.params.id || null;
     const product = await Product.findOne({ _id: productId, isDisabled: false });
     if (!product) {
       res.status(404);
@@ -308,7 +310,7 @@ productRouter.patch(
   protect,
   admin, 
   expressAsyncHandler(async (req, res) => {
-    const productId = req.params.id ? req.params.id : null;
+    const productId = req.params.id || null;
     const product = await Product.findOne({ _id: productId, isDisabled: true });
     if (!product) {
       res.status(404);
