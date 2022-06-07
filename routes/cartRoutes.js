@@ -12,7 +12,7 @@ cartRouter.get(
     "/",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user._id ? req.user._id : null;
+        const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);
@@ -28,7 +28,7 @@ cartRouter.post(
     "/",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user._id ? req.user._id : null;
+        const userId = req.user._id || null;
         const existedCart = await Cart.findOne({ user: userId });
         if (existedCart) {
             res.status(400);
@@ -48,7 +48,7 @@ cartRouter.patch(
     "/add",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user._id ? req.user._id : null;
+        const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);
@@ -63,7 +63,6 @@ cartRouter.patch(
         let statusCode;
         if (addedItemIndex !== -1) {
             cart.cartItems[addedItemIndex].qty += qty;
-            statusCode = 200;
         }
         else {
             const product = await Product.findOne({ _id: productId, isDisabled: false });
@@ -76,10 +75,9 @@ cartRouter.patch(
                 qty: qty,
             }        
             addedItemIndex = cart.cartItems.push(cartItem) - 1;
-            statusCode = 201;
         }
         const updatedCart = await cart.save();
-        res.status(statusCode);
+        res.status(200);
         res.json(updatedCart.cartItems[addedItemIndex]);
     })
 ); 
@@ -89,7 +87,7 @@ cartRouter.patch(
     "/update",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user._id ? req.user._id : null;
+        const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);
@@ -122,7 +120,7 @@ cartRouter.patch(
     "/remove",
     protect,
     expressAsyncHandler(async(req, res) => {
-        const userId = req.user._id ? req.user._id : null;
+        const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404);

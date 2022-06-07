@@ -12,6 +12,7 @@ import path from "path";
 import fs from "fs";
 import mongoose from "mongoose";
 import Product from "../models/ProductModel.js";
+import RefreshToken from "../models/RefreshTokenModel.js";
 const __dirname = path.resolve();
 
 const userRouter = express.Router();
@@ -26,13 +27,23 @@ userRouter.post(
     const { email, password } = req.body;
     const user = await User.findOne({ email: email, isDisabled: false });
     if (user && (await user.matchPassword(password))) {
+      //delete old refresh token if existed
+      await RefreshToken.deleteMany({ user: user._id })
+      //create new refresh token
+      const tokenValue = generateToken(user._id, process.env.REFRESH_TOKEN_SECRET, process.env.REFRESH_TOKEN_EXPIRESIN);
+      const newRefreshToken = await new RefreshToken({
+        user: user._id,
+        tokenValue: tokenValue,
+        refreshTokenItems: [tokenValue],
+      }).save();
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl || "./images/user.png",
         isAdmin: user.isAdmin,
-        token: generateToken(user._id),
+        token: generateToken(user._id, process.env.ACCESS_TOKEN_SECRET, process.env.ACCESS_TOKEN_EXPIRESIN),
+        refreshToken: newRefreshToken.tokenValue,
         createdAt: user.createdAt,
         isDisabled: user.isDisabled,
       });
@@ -49,7 +60,7 @@ userRouter.post(
  */
 userRouter.post(
   "/",
-  expressAsyncHandler(async (req, res) => {
+  expressAsyncHandler(async (req, res, next) => {
     const { name, email, password } = req.body;
     const isExistingUser = await User.findOne({
       email: email,
@@ -60,37 +71,59 @@ userRouter.post(
       throw new Error("Email of user already exists");
     }
     //else
-    const session = mongoose.startSession();
-    (await session).withTransaction(async () => {
-      const newUser = await User.create({
-        name,
-        email,
-        password,
-      });
-      if (!newUser) {
-        res.status(400);
-        throw new Error("Invalid user data");
-      }
-      const newCart = await Cart.create({
-        user: newUser._id,
-        cartItems: [],
-      });
-      if (!newCart) {
-        //Note: không biết trả về status với error gì cho hợp lý.
-        res.status(400);
-        throw new Error("Failed to create user cart");
-      }
-      res.status(201).json({
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        avatarUrl: newUser.avatarUrl || "./images/user.png",
-        isAdmin: newUser.isAdmin,
-        isDisabled: newUser.isDisabled,
-        token: generateToken(newUser._id),
-      });
-    });
-    (await session).endSession();
+    const session = await mongoose.startSession();
+    const transactionOptions = {
+      readPreference: 'primary',
+      readConcern: { level: 'local' },
+      writeConcern: { w: 'majority' },
+    };
+    try {
+      await session.withTransaction(async () => {
+        const newUser = await User.create([{
+          name,
+          email,
+          password,
+        }], session);
+        if (!newUser) {
+          res.status(400);
+          await session.abortTransaction();
+          throw new Error("Invalid user data");
+        }
+        //create new refresh token
+        const tokenValue = generateToken(newUser._id, process.env.REFRESH_TOKEN_SECRET, process.env.REFRESH_TOKEN_EXPIRESIN);
+        const newRefreshToken = await new RefreshToken({
+          user: newUser._id,
+          tokenValue: tokenValue,
+          refreshTokenItems: [tokenValue],
+        }).save();
+        const newCart = await Cart.create([{
+          user: newUser._id,
+          cartItems: [],
+        }], session);
+        if (!newCart) {
+          //Note: không biết trả về status với error gì cho hợp lý.
+          res.status(500);
+          await session.abortTransaction();
+          throw new Error("Failed to create user cart");
+        } 
+        res.status(201).json({
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          avatarUrl: newUser.avatarUrl || "./images/user.png",
+          isAdmin: newUser.isAdmin,
+          isDisabled: newUser.isDisabled,
+          token: generateToken(newUser._id, process.env.ACCESS_TOKEN_SECRET, process.env.ACCESS_TOKEN_EXPIRESIN),
+          refreshToken: newRefreshToken.tokenValue,
+        });
+      }, transactionOptions);
+    }
+    catch (error) {
+      next(error);
+    }
+    finally {
+      await session.endSession();
+    }
   })
 );
 
@@ -102,7 +135,7 @@ userRouter.get(
   "/profile",
   protect,
   expressAsyncHandler(async (req, res) => {
-    const userId = req.user._id ? req.user._id : null;
+    const userId = req.user._id || null;
     const user = await User.findOne({ _id: userId, isDisabled: false });
     if (user) {
       res.json({
@@ -126,7 +159,7 @@ userRouter.get(
  * SWAGGER SETUP: no
  */
 userRouter.put("/profile", protect, async (req, res) => {
-  const userId = req.user._id ? req.user._id : null;
+  const userId = req.user._id || null;
   const user = await User.findOne({ _id: userId, isDisabled: false });
   if (user) {
     user.name = req.body.name || user.name;
@@ -143,7 +176,7 @@ userRouter.put("/profile", protect, async (req, res) => {
       isAdmin: updateUser.isAdmin,
       createAt: updateUser.createAt,
       isDisabled: updateUser.isDisabled,
-      token: generateToken(updateUser._id),
+      token: generateToken(updateUser._id, process.env.ACCESS_TOKEN_SECRET, process.env.ACCESS_TOKEN_EXPIRESIN),
     });
   } else {
     res.status(404);
@@ -230,7 +263,7 @@ userRouter.post(
         email: updateUser.email,
         avatarUrl: updateUser.avatarUrl,
         isAdmin: updateUser.isAdmin,
-        token: generateToken(updateUser._id),
+        token: generateToken(updateUser._id, process.env.ACCESS_TOKEN_SECRET, process.env.ACCESS_TOKEN_EXPIRESIN),
         isDisabled: updateUser.isDisabled,
         createAt: updateUser.createAt,
       });
@@ -247,7 +280,7 @@ userRouter.patch(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const userId = req.params.id ? req.params.id : null;
+    const userId = req.params.id || null;
     const user = await User.findOne({ _id: userId, isDisabled: false });
     if (!user) {
       res.status(404);
@@ -273,7 +306,7 @@ userRouter.patch(
   protect,
   admin,
   expressAsyncHandler(async (req, res) => {
-    const userId = req.params.id ? req.params.id : null;
+    const userId = req.params.id || null;
     const user = await User.findOne({ _id: userId, isDisabled: true });
     if (!user) {
       res.status(404);
@@ -289,6 +322,7 @@ userRouter.patch(
     }
     user.isDisabled = false;
     const restoredUser = await user.save();
+    //.
     //restore comments
     const userComments = await Comment.find({
       user: restoredUser._id,
