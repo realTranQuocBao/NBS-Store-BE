@@ -6,15 +6,12 @@ info:
   termsOfService: http://quocbaoit.com/terms/
   contact:
     email: NBSstoreProject@quocbaoit.com
-swaggerOptions:
-  docExpansion: "none"
 tags:
   - name: Order
     description: Access to NBSstore orders
     externalDocs:
       description: Find out more
       url: http://fb.quocbaoit.com
-      docExpansion: none
   - name: Product
     description: Everything about our products
   - name: User
