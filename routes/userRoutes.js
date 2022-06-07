@@ -51,7 +51,10 @@ userRouter.post(
   "/",
   expressAsyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
-    const isExistingUser = await User.findOne({ email: email, isDisabled: false });
+    const isExistingUser = await User.findOne({
+      email: email,
+      isDisabled: false,
+    });
     if (isExistingUser) {
       res.status(400);
       throw new Error("Email of user already exists");
@@ -67,7 +70,7 @@ userRouter.post(
       if (!newUser) {
         res.status(400);
         throw new Error("Invalid user data");
-      } 
+      }
       const newCart = await Cart.create({
         user: newUser._id,
         cartItems: [],
@@ -76,7 +79,7 @@ userRouter.post(
         //Note: không biết trả về status với error gì cho hợp lý.
         res.status(400);
         throw new Error("Failed to create user cart");
-      } 
+      }
       res.status(201).json({
         _id: newUser._id,
         name: newUser.name,
@@ -172,10 +175,9 @@ userRouter.get(
     if (users.length != 0) {
       res.status(200);
       res.json(users);
-    }
-    else {
+    } else {
       res.status(204);
-      res.json({ message: "No users are disabled"} );
+      res.json({ message: "No users are disabled" });
     }
   })
 );
@@ -189,11 +191,17 @@ userRouter.post(
   protect,
   upload.single("file"),
   expressAsyncHandler(async (req, res) => {
-    const userId = req.user._id ? req.user._id : null;
-    const user = await User.findOne({ _id: userId, isDisabled: false });
-    if (user.isAdmin && req.params.userId) {
+    // const userId = req.user._id ? req.user._id : null;
+    console.log(req.user._id.toString(), req.params.userId);
+    let user = await User.findOne({
+      _id: req.user._id,
+      isDisabled: false,
+    });
+    console.log("userLog", mongoose.isValidObjectId(req.params.userId));
+    if (user.isAdmin && mongoose.isValidObjectId(req.params.userId)) {
       user = await User.findById(req.params.userId);
     }
+    console.log("userLog2", user);
     if (user) {
       //folder path to upload avatar
       const avatarPath = path.join(__dirname, "/public/images/avatar/");
@@ -271,7 +279,10 @@ userRouter.patch(
       res.status(404);
       throw new Error("User not found");
     }
-    const duplicatedUser = await User.findOne({ name: user.name, isDisabled: false });
+    const duplicatedUser = await User.findOne({
+      name: user.name,
+      isDisabled: false,
+    });
     if (duplicatedUser) {
       res.status(400);
       throw new Error("Restore this user will result in duplicated user name");
@@ -279,7 +290,10 @@ userRouter.patch(
     user.isDisabled = false;
     const restoredUser = await user.save();
     //restore comments
-    const userComments = await Comment.find({ user: restoredUser._id, isDisabled: true });
+    const userComments = await Comment.find({
+      user: restoredUser._id,
+      isDisabled: true,
+    });
     for (const comment of userComments) {
       const linkedProduct = await Product.findById(comment.product);
       if (linkedProduct.isDisabled == false) {
@@ -292,7 +306,6 @@ userRouter.patch(
   })
 );
 
-
 //Admin delete user
 userRouter.delete(
   "/:id",
@@ -303,43 +316,47 @@ userRouter.delete(
     if (!user) {
       res.status(404);
       throw new Error("User not found");
-    } 
-      const order = await Order.findOne({ user: user._id, isDisabled: false });
-      if (order) {
-        res.status(400);
-        throw new Error("Cannot delete user who had ordered");
-      }
-      const session = await mongoose.startSession();
-      const transactionOptions = {
-        readPreference: 'primary',
-        readConcern: { level: 'local' },
-        writeConcern: { w: 'majority' },
-      };
-      try {
-        await session.withTransaction(async () => {
-          const deletedUser = await User.findOneAndDelete({ _id: user._id }).session(session);
-          if (!deletedUser) {
-            await session.abortTransaction();
-            throw new Error("Something wrong while deleting user");
-          }
-          //delete cart
-          const deletedCart = await Cart.findOneAndDelete({ user: deletedUser._id }).session(session);
-          if (!deletedCart) {
-            await session.abortTransaction();
-            throw new Error("Something wrong while deleting user cart");
-          }
-          //delete comments
-          const deletedComments = await Comment.deleteMany({ user: deletedUser._id }).session(session);
-          res.status(200);
-          res.json({ message: "User has been deleted"});
-        }, transactionOptions);
-      }
-      catch(error) {
-        next(error);
-      }
-      finally {
-        await session.endSession(); 
-      }
+    }
+    const order = await Order.findOne({ user: user._id, isDisabled: false });
+    if (order) {
+      res.status(400);
+      throw new Error("Cannot delete user who had ordered");
+    }
+    const session = await mongoose.startSession();
+    const transactionOptions = {
+      readPreference: "primary",
+      readConcern: { level: "local" },
+      writeConcern: { w: "majority" },
+    };
+    try {
+      await session.withTransaction(async () => {
+        const deletedUser = await User.findOneAndDelete({
+          _id: user._id,
+        }).session(session);
+        if (!deletedUser) {
+          await session.abortTransaction();
+          throw new Error("Something wrong while deleting user");
+        }
+        //delete cart
+        const deletedCart = await Cart.findOneAndDelete({
+          user: deletedUser._id,
+        }).session(session);
+        if (!deletedCart) {
+          await session.abortTransaction();
+          throw new Error("Something wrong while deleting user cart");
+        }
+        //delete comments
+        const deletedComments = await Comment.deleteMany({
+          user: deletedUser._id,
+        }).session(session);
+        res.status(200);
+        res.json({ message: "User has been deleted" });
+      }, transactionOptions);
+    } catch (error) {
+      next(error);
+    } finally {
+      await session.endSession();
+    }
   })
 );
 

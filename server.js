@@ -2,20 +2,14 @@ import express from "express";
 import dotenv from "dotenv";
 import swaggerUiExpress from "swagger-ui-express";
 import YAML from "yamljs";
-import cors from "cors"
+import cors from "cors";
 import connectDatabase from "./config/mongodb.js";
-import ImportData from "./ImportData.js";
+
 import {
   notFoundMiddleware,
   errorhandlingMiddleware,
 } from "./middleware/Errors.js";
-import orderRouter from "./routes/orderRoutes.js";
-import productRouter from "./routes/productRoutes.js";
-import userRouter from "./routes/userRoutes.js";
-import categoryRouter from "./routes/categoryRoutes.js";
-import producerRouter from "./routes/producerRoutes.js";
-import cartRouter from "./routes/cartRoutes.js";
-import commentRouter from "./routes/commentRoutes.js";
+import routes from "./routes/index.js";
 
 // import swaggerJsdoc from "swagger-jsdoc";
 // import swaggerDocument from "./config/swagger.json";
@@ -23,23 +17,13 @@ import commentRouter from "./routes/commentRoutes.js";
 dotenv.config();
 connectDatabase();
 const app = express();
-const swaggerDocument = YAML.load('./config/swagger.yaml')
+const swaggerDocument = YAML.load("./config/swagger.yaml");
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
 // api v1.0
 //handle route for api
-app.use("/api/v1/import", ImportData);
-app.use("/api/v1/order", orderRouter);
-app.use("/api/v1/product", productRouter);
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/category", categoryRouter);
-app.use("/api/v1/producer", producerRouter);
-app.use("/api/v1/cart", cartRouter);
-app.use("/api/v1/comment", commentRouter);
-app.use("/api/v1/config/paypal", (req, res) => {
-  res.send(process.env.PAYPAL_CLIENT_ID);
-});
+routes(app);
 
 /**
  * swaggerDocument2 created by JSON file
@@ -51,13 +35,22 @@ app.use("/api/v1/config/paypal", (req, res) => {
 // };
 // const swaggerDocument2 = [null, options];  //use: ...swaggerDocument2
 
-/**F
+/**
  * for swagger ui express + YAML file
  */
+// const options = {
+//   swaggerOptions: {
+//     docExpansion: "none",
+//   },
+// };
 app.use(
   "/thisisnbsstoreswagger",
   swaggerUiExpress.serve,
-  swaggerUiExpress.setup(swaggerDocument)
+  swaggerUiExpress.setup(swaggerDocument, {
+    swaggerOptions: {
+      docExpansion: "none",
+    },
+  })
 );
 
 app.get("/", (req, res) => {

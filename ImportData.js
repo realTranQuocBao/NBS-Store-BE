@@ -11,21 +11,21 @@ import products from "./data/Products.js";
 const ImportData = express.Router();
 
 ImportData.post(
-  "/user",
-  expressAsyncHandler(async (req, res) => {
-    await User.deleteMany({});
-    const importUser = await User.insertMany(users);
-    res.send({ importUser });
-  })
+    "/user",
+    expressAsyncHandler(async (req, res) => {
+        await User.deleteMany({});
+        const importUser = await User.insertMany(users);
+        res.send({ importUser });
+    })
 );
 
 ImportData.post(
-  "/product",
-  expressAsyncHandler(async (req, res) => {
-    await Product.deleteMany({});
-    const importProducts = await Product.insertMany(products);
-    res.send({ importProducts });
-  })
+    "/product",
+    expressAsyncHandler(async (req, res) => {
+        await Product.deleteMany({});
+        const importProducts = await Product.insertMany(products);
+        res.send({ importProducts });
+    })
 );
 // ImportData.post(
 //   "/category",
