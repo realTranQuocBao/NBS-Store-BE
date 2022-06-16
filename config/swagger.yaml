@@ -413,6 +413,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/product/{id}/comments:
+      get:
+        summary: Get product comments
+        description: Get product comments
+        tags:
+          - Product
+        parameters:
+          - name: id
+            in: path
+            description: Product ID
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Success
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Comment'
+          '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'             
+
   /api/v1/user/login:
     post:
       summary: Logs user into the system
@@ -1852,60 +1881,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Comment'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'        
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Error'  
-  /api/v1/comment/{parentCommentId}/reply: 
+                $ref: '#/components/schemas/Error' 
     get:
-      summary:  User, non-user get comment replies
-      description: User, non-user get comment replies
+      summary:  Non-user, user admin get comments
+      description: Non-user, user admin get comments
       tags:
         - Comment
       parameters:
-        - name: parentCommentId
-          in: path
-          description: Parent Comment Id
-          required: true
+        - in: query
+          name: dateOrder
+          required: false 
           schema:
             type: string
+          description: Sort product by date (newest/latest)
+        - in: query
+          name: status
+          required: false
+          schema: 
+            type: string
+          description: Filter comment by status (disabled/notDisabled/all)
       responses:
-        '200':
-          description: Success
+        '201':
+          description: Created
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Comment'
+                $ref: '#/components/schemas/Comment'       
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error'                 
   /api/v1/comment/{commentId}: 
     delete:
       summary:  User, admin delete comment
       description: User, admin delete comment
+      security:
+        - bearerAuth: []
       tags:
         - Comment
       parameters:
@@ -1921,9 +1945,16 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Comment'
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized
           content:
@@ -1942,6 +1973,8 @@ paths:
     patch:
       summary:  User, admin change comment
       description: User, admin change comment
+      security:
+        - bearerAuth: []
       tags:
         - Comment
       parameters:
@@ -1972,6 +2005,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comment'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'                  
         '401':
           description: Unauthorized
           content:
@@ -1990,6 +2029,8 @@ paths:
     patch:
       summary:  User, admin disable comment
       description: User, admin disable comment
+      security:
+        - bearerAuth: []      
       tags:
         - Comment
       parameters:
@@ -2008,12 +2049,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comment'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '404':
           description: Not found
           content:
@@ -2021,11 +2056,27 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Error'
+                  $ref: '#/components/schemas/Error'                     
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'                  
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/comment/{commentId}/restore: 
     patch:
       summary:  User, admin restore comment
       description: User, admin restore comment
+      security:
+        - bearerAuth: []            
       tags:
         - Comment
       parameters:
@@ -2044,6 +2095,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comment'
+        '400':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized
           content:
@@ -2570,6 +2627,37 @@ components:
         __v:
           type: number
           description: Document version key
+    # Comment:
+    #   type: object
+    #   properties:
+    #     _id: 
+    #       type: string
+    #       description: Cart Object id
+    #     user: 
+    #       type: string
+    #       description: User id
+    #     product:
+    #       type: string 
+    #       description: Product object id
+    #     content: 
+    #       type: string
+    #       description: Comment content
+    #     parentComment:
+    #       type: string
+    #       description: Parent comment object id
+    #     replies:
+    #       type: array
+    #       items: 
+    #         $ref: '#/components/schemas/Comment'
+    #       description: Commnet replies
+    #     isDisabled:
+    #       type: boolean
+    #       description: is Disabled or not
+    #     timestamp:
+    #       $ref: '#/components/schemas/Timestamp'
+    #     __v:
+    #       type: number
+    #       description: Document version key
     Comment:
       type: object
       properties:
@@ -2577,8 +2665,7 @@ components:
           type: string
           description: Cart Object id
         user: 
-          type: string
-          description: User id
+          $ref: '#/components/schemas/User'
         product:
           type: string 
           description: Product object id

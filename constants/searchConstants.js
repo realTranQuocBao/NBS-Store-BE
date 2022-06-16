@@ -1,25 +1,38 @@
-const searchConstants = {
-    price: {
-        asc: 'asc',
-        desc: 'desc',
-    },
-    date: {
-        newest: 'desc',
-        latest: 'asc',
-    },
-    totalSales: {
-        true: 'desc',
-    }
-}
-const validateConstants = function(constant, constantField) {
-    if (!constant) {
-        return {};
-    }
-    return searchConstants[constant].hasOwnProperty(constantField) 
-    ? {
-        [constant]: searchConstants[constant][constantField],
-    }
-    : {};
-}
+const productQueryParams = {
+  price: {
+    asc: { price: "asc" },
+    desc: { price: "desc" },
+    default: { price: "asc" },
+  },
+  date: {
+    newest: { createdAt: "desc" },
+    latest: { createdAt: "asc" },
+    default: { createdAt: "desc" },
+  },
+  totalSales: {
+    true: { totalSales: "desc" },
+    default: { totalSales: "desc" },
+  },
+};
 
-export {searchConstants, validateConstants};
+const commentQueryParams = {
+  date: {
+    newest: { createdAt: "desc" },
+    latest: { createdAt: "asc" },
+    default: { createdAt: "desc" },
+  },
+  status: {
+    disabled: { isDisabled: true },
+    notDisabled: { isDisabled: false },
+    all: {},
+    default: { isDisabled: false },
+  },
+};
+
+const validateConstants = function (reference, constant, constantField) {
+  return reference[constant].hasOwnProperty(constantField)
+    ? reference[constant][constantField]
+    : reference[constant]["default"];
+};
+
+export { productQueryParams, commentQueryParams, validateConstants };
