@@ -80,7 +80,7 @@ productRouter.post("/", protect, admin, expressAsyncHandler(async (req, res) => 
 productRouter.get(
   "/",
   expressAsyncHandler(async (req, res) => {
-    const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
+    const pageSize = Number(req.query.pageSize) || 20; //EDIT HERE
     const page = Number(req.query.pageNumber) || 1;
     const dateOrderFilter = validateConstants('date', req.query.dateOrder);
     const priceOrderFilter = validateConstants('price', req.query.priceOrder);
