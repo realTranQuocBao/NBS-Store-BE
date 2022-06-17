@@ -11,7 +11,6 @@ import { upload } from "./../middleware/UploadMiddleware.js";
 import path from "path";
 import fs from "fs";
 import mongoose from "mongoose";
-import Product from "../models/ProductModel.js";
 import RefreshToken from "../models/RefreshTokenModel.js";
 const __dirname = path.resolve();
 
@@ -67,8 +66,7 @@ userRouter.post(
     expressAsyncHandler(async (req, res, next) => {
         const { name, email, password } = req.body;
         const isExistingUser = await User.findOne({
-            email: email,
-            isDisabled: false
+            email: email
         });
         if (isExistingUser) {
             res.status(400);
@@ -156,21 +154,15 @@ userRouter.get(
     "/profile",
     protect,
     expressAsyncHandler(async (req, res) => {
-        const userId = req.user._id || null;
-        const user = await User.findOne({ _id: userId, isDisabled: false });
-        if (!user) {
-            res.status(400);
-            throw new Error("User not Found");
-        }
         res.status(200);
         res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            avatarUrl: user.avatarUrl || "./images/avatar/default.png",
-            isAdmin: user.isAdmin,
-            createAt: user.createAt,
-            isDisabled: user.isDisabled
+            _id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            avatarUrl: req.user.avatarUrl || "./images/avatar/default.png",
+            isAdmin: req.user.isAdmin,
+            createAt: req.user.createAt,
+            isDisabled: req.user.isDisabled
         });
     })
 );
@@ -180,28 +172,23 @@ userRouter.get(
  * SWAGGER SETUP: no
  */
 userRouter.put("/profile", protect, async (req, res) => {
-    const userId = req.user._id || null;
-    const user = await User.findOne({ _id: userId, isDisabled: false });
-    if (!user) {
-        res.status(404);
-        throw new Error("User not Found");
-    }
+    const user = req.user;
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     if (req.body.password) {
         user.password = req.body.password;
     }
-    const updateUser = await user.save();
+    const updatedUser = await user.save();
     res.status(200);
     res.json({
-        _id: updateUser._id,
-        name: updateUser.name,
-        email: updateUser.email,
-        avatarUrl: updateUser.avatarUrl || "./images/user.png",
-        isAdmin: updateUser.isAdmin,
-        createAt: updateUser.createAt,
-        isDisabled: updateUser.isDisabled,
-        token: generateToken(updateUser._id, process.env.ACCESS_TOKEN_SECRET, process.env.ACCESS_TOKEN_EXPIRESIN)
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        avatarUrl: updatedUser.avatarUrl || "./images/user.png",
+        isAdmin: updatedUser.isAdmin,
+        createAt: updatedUser.createAt,
+        isDisabled: updatedUser.isDisabled,
+        token: generateToken(updatedUser._id, process.env.ACCESS_TOKEN_SECRET, process.env.ACCESS_TOKEN_EXPIRESIN)
     });
 });
 
@@ -312,15 +299,15 @@ userRouter.patch(
             res.status(400);
             throw new Error("Cannot disable user who had ordered");
         }
-        const disabledUser = await User.findOneAndUpdate({ _id: user._id }, { isDisabled: true }, { new: true });
-        //disable user comments
-        await Comment.updateMany({ isDisabled: false, user: disabledUser._id }, { $set: { isDisabled: true } });
-        //disable user replies
-        await Comment.updateMany(
-            {},
-            { $set: { "replies.$[element].isDisabled": true } },
-            { arrayFilters: [{ "element.isDisabled": false, "element.user": disabledUser._id }] }
-        );
+        // const disabledUser = await User.findOneAndUpdate({ _id: user._id }, { isDisabled: true }, { new: true });
+        // //disable user comments
+        // await Comment.updateMany({ isDisabled: false, user: disabledUser._id }, { $set: { isDisabled: true } });
+        // //disable user replies
+        // await Comment.updateMany(
+        //     {},
+        //     { $set: { "replies.$[element].isDisabled": true } },
+        //     { arrayFilters: [{ "element.isDisabled": false, "element.user": disabledUser._id }] }
+        // );
         res.status(200);
         res.json(disabledUser);
     })
@@ -338,34 +325,34 @@ userRouter.patch(
             res.status(404);
             throw new Error("User not found");
         }
-        const duplicatedUser = await User.findOne({
-            name: user.name,
-            isDisabled: false
-        });
-        if (duplicatedUser) {
-            res.status(400);
-            throw new Error("Restore this user will result in duplicated user name");
-        }
+        // const duplicatedUser = await User.findOne({
+        //     name: user.name,
+        //     isDisabled: false
+        // });
+        // if (duplicatedUser) {
+        //     res.status(400);
+        //     throw new Error("Restore this user will result in duplicated user name");
+        // }
         const restoredUser = await User.findOneAndUpdate({ _id: user._id }, { isDisabled: false }, { new: true });
         //.
         //restore comments
-        const comments = await Comment.find({
-            $or: [
-                { $and: [{ user: restoredUser._id }, { isDisabled: true }] },
-                { replies: { $elemMatch: { user: restoredUser._id, isDisabled: true } } }
-            ]
-        }).populate("user product replies.user replies.product");
-        for (const comment of comments) {
-            if (comment.user._id.toString() === restoredUser._id.toString() && comment.isDisabled == true) {
-                comment.isDisabled = comment.user.isDisabled || comment.product.isDisabled || false;
-            }
-            for (const reply of comment.replies) {
-                if (reply.user._id.toString() === restoredUser._id.toString() && reply.isDisabled == true) {
-                    reply.isDisabled = reply.user.isDisabled || reply.product.isDisabled || false;
-                }
-            }
-            await comment.save();
-        }
+        // const comments = await Comment.find({
+        //     $or: [
+        //         { $and: [{ user: restoredUser._id }, { isDisabled: true }] },
+        //         { replies: { $elemMatch: { user: restoredUser._id, isDisabled: true } } }
+        //     ]
+        // }).populate("user product replies.user replies.product");
+        // for (const comment of comments) {
+        //     if (comment.user._id.toString() === restoredUser._id.toString() && comment.isDisabled == true) {
+        //         comment.isDisabled = comment.user.isDisabled || comment.product.isDisabled || false;
+        //     }
+        //     for (const reply of comment.replies) {
+        //         if (reply.user._id.toString() === restoredUser._id.toString() && reply.isDisabled == true) {
+        //             reply.isDisabled = reply.user.isDisabled || reply.product.isDisabled || false;
+        //         }
+        //     }
+        //     await comment.save();
+        // }
         res.status(200);
         res.json(restoredUser);
     })

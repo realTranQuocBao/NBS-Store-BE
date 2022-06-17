@@ -7,8 +7,6 @@ import Cart from "../models/CartModel.js";
 import Comment from "../models/CommentModel.js";
 import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import { productQueryParams, validateConstants } from "../constants/searchConstants.js";
-import User from "../models/UserModel.js";
-import mongoose from "mongoose";
 
 const productRouter = express.Router();
 
@@ -25,7 +23,7 @@ productRouter.post(
     admin,
     expressAsyncHandler(async (req, res) => {
         const { name, price, description, image, countInStock, category } = req.body;
-        const isExist = await Product.findOne({ name: name, isDisabled: false });
+        const isExist = await Product.findOne({ name: name });
         if (isExist) {
             res.status(400);
             throw new Error("Product name already exist");
@@ -330,11 +328,11 @@ productRouter.patch(
             res.status(404);
             throw new Error("Product not found");
         }
-        const duplicatedProduct = await Product.findOne({ name: product.name, isDisabled: false });
-        if (duplicatedProduct) {
-            res.status(400);
-            throw new Error("Restore this product will result in duplicated product name");
-        }
+        // const duplicatedProduct = await Product.findOne({ name: product.name, isDisabled: false });
+        // if (duplicatedProduct) {
+        //     res.status(400);
+        //     throw new Error("Restore this product will result in duplicated product name");
+        // }
         product.isDisabled = false;
         const restoredProduct = await Product.findOneAndUpdate(
             { _id: product._id },
@@ -342,21 +340,21 @@ productRouter.patch(
             { new: true }
         );
         //restore comments
-        const comments = await Comment.find({
-            product: restoredProduct._id,
-            isDisabled: true
-        }).populate("user product replies.user replies.product");
-        for (const comment of comments) {
-            if (comment.product._id.toString() === restoredProduct._id.toString() && comment.isDisabled == true) {
-                comment.isDisabled = comment.user.isDisabled || comment.product.isDisabled || false;
-            }
-            for (const reply of comment.replies) {
-                if (reply.product._id.toString() === restoredProduct._id.toString() && reply.isDisabled == true) {
-                    reply.isDisabled = reply.user.isDisabled || reply.product.isDisabled || false;
-                }
-            }
-            await comment.save();
-        }
+        // const comments = await Comment.find({
+        //     product: restoredProduct._id,
+        //     isDisabled: true
+        // }).populate("user product replies.user replies.product");
+        // for (const comment of comments) {
+        //     if (comment.product._id.toString() === restoredProduct._id.toString() && comment.isDisabled == true) {
+        //         comment.isDisabled = comment.user.isDisabled || comment.product.isDisabled || false;
+        //     }
+        //     for (const reply of comment.replies) {
+        //         if (reply.product._id.toString() === restoredProduct._id.toString() && reply.isDisabled == true) {
+        //             reply.isDisabled = reply.user.isDisabled || reply.product.isDisabled || false;
+        //         }
+        //     }
+        //     await comment.save();
+        // }
         res.status(200);
         res.json(restoredProduct);
     })
