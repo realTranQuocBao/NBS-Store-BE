@@ -257,7 +257,7 @@ userRouter.post(
             user = await User.findById(req.params.userId);
         }
         console.log("userLog2", user);
-        if (user) {
+        if (!user) {
             res.status(400);
             throw new Error("User not Found");
         }
