@@ -83,7 +83,7 @@ userRouter.post(
         };
         try {
             await session.withTransaction(async () => {
-                const newUser = await User.create(
+                let newUser = await User.create(
                     [
                         {
                             name,
@@ -98,6 +98,7 @@ userRouter.post(
                     await session.abortTransaction();
                     throw new Error("Invalid user data");
                 }
+                newUser = newUser[0];
                 //create new refresh token
                 const tokenValue = generateToken(
                     newUser._id,
@@ -400,6 +401,14 @@ userRouter.delete(
                 if (!deletedUser) {
                     await session.abortTransaction();
                     throw new Error("Something wrong while deleting user");
+                }
+                //delete refresh tokens
+                const deletedRefreshToken = await RefreshToken.findOneAndDelete({
+                    user: user._id
+                }).session(session);
+                if (!deletedRefreshToken) {
+                    await session.abortTransaction();
+                    throw new Error("Something wrong while deleting refresh token");
                 }
                 //delete cart
                 const deletedCart = await Cart.findOneAndDelete({
