@@ -5,7 +5,7 @@ import Category from "../models/CategoryModel.js";
 import Order from "../models/OrderModel.js";
 import Cart from "../models/CartModel.js";
 import Comment from "../models/CommentModel.js";
-import { admin, protect } from "./../middleware/AuthMiddleware.js";
+import { admin, protect, optional } from "./../middleware/AuthMiddleware.js";
 import { productQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 const productRouter = express.Router();
@@ -80,6 +80,7 @@ productRouter.post(
 
 productRouter.get(
     "/",
+    optional,
     expressAsyncHandler(async (req, res) => {
         const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
         const page = Number(req.query.pageNumber) || 1;

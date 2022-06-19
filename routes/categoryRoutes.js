@@ -1,6 +1,6 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
+import { admin, protect, optional } from "../middleware/AuthMiddleware.js";
 import Category from "../models/CategoryModel.js";
 import Product from "../models/ProductModel.js";
 import { categoryQueryParams, commentQueryParams, validateConstants } from "../constants/searchConstants.js";
@@ -38,10 +38,12 @@ categoryRouter.post(
 
 categoryRouter.get(
     "/",
+    optional,
     expressAsyncHandler(async (req, res) => {
         const dateOrderFilter = validateConstants(categoryQueryParams, "date", req.query.dateOrder);
         let statusFilter;
         if (!req.user || req.user.isAdmin == false) {
+            console.log("here");
             statusFilter = validateConstants(categoryQueryParams, "status", "default");
         } else if (req.user.isAdmin) {
             statusFilter = validateConstants(categoryQueryParams, "status", req.query.status);
