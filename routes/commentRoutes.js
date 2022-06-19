@@ -71,7 +71,7 @@ commentRouter.get(
     expressAsyncHandler(async (req, res) => {
         const dateOrderFilter = validateConstants(commentQueryParams, "date", req.query.dateOrder);
         const statusFilter = validateConstants(commentQueryParams, "status", req.query.status);
-        let comments = await Comment.find({ ...statusFilter })
+        const comments = await Comment.find({ ...statusFilter })
             .sort({ ...dateOrderFilter })
             .populate("user replies.user");
         res.status(200);

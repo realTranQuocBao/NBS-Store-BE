@@ -87,6 +87,12 @@ productRouter.get(
         const priceOrderFilter = validateConstants(productQueryParams, "price", req.query.priceOrder);
         const bestSellerFilter = validateConstants(productQueryParams, "totalSales", req.query.bestSeller);
         const sortBy = { ...bestSellerFilter, ...dateOrderFilter, ...priceOrderFilter };
+        let statusFilter;
+        if (!req.user || req.user.isAdmin == false) {
+            statusFilter = validateConstants(productQueryParams, "status", "default");
+        } else if (req.user.isAdmin) {
+            statusFilter = validateConstants(productQueryParams, "status", req.query.status);
+        }
         const keyword = req.query.keyword
             ? {
                   name: {
@@ -110,14 +116,13 @@ productRouter.get(
         const categoryFilter = categoryIds ? { category: categoryIds } : {};
         //(categoryFilter);
         const count = await Product.countDocuments({ ...keyword, ...categoryFilter, isDisabled: false });
-
         //Check if product match keyword
         if (count == 0) {
             res.status(204);
             throw new Error("No products found for this keyword");
         }
         //else
-        const products = await Product.find({ ...keyword, ...categoryFilter, isDisabled: false })
+        const products = await Product.find({ ...keyword, ...categoryFilter, ...statusFilter })
             .limit(pageSize)
             .skip(pageSize * (page - 1))
             .sort(sortBy)
@@ -126,37 +131,37 @@ productRouter.get(
     })
 );
 
-/**
- * Read: ADMIN GET ALL PRODUCTS
- * (not search & pegination)
- * SWAGGER SETUP: ok
- */
-productRouter.get(
-    "/all",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const products = await Product.find({ isDisabled: false }).sort({ _id: -1 });
-        res.json(products);
-    })
-);
+// /**
+//  * Read: ADMIN GET ALL PRODUCTS
+//  * (not search & pegination)
+//  * SWAGGER SETUP: ok
+//  */
+// productRouter.get(
+//     "/all",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const products = await Product.find({ isDisabled: false }).sort({ _id: -1 });
+//         res.json(products);
+//     })
+// );
 
-//Admin get all disabled products
-productRouter.get(
-    "/disabled",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const products = await Product.find({ isDisabled: true });
-        if (products.length != 0) {
-            res.status(200);
-            res.json(products);
-        } else {
-            res.status(204);
-            res.json({ message: "No products are disabled" });
-        }
-    })
-);
+// //Admin get all disabled products
+// productRouter.get(
+//     "/disabled",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const products = await Product.find({ isDisabled: true });
+//         if (products.length != 0) {
+//             res.status(200);
+//             res.json(products);
+//         } else {
+//             res.status(204);
+//             res.json({ message: "No products are disabled" });
+//         }
+//     })
+// );
 
 /**
  * Read: GET A PRODUCT DETAIL

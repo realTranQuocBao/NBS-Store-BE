@@ -12,6 +12,8 @@ import path from "path";
 import fs from "fs";
 import mongoose from "mongoose";
 import RefreshToken from "../models/RefreshTokenModel.js";
+import { userQueryParams, validateConstants } from "../constants/searchConstants.js";
+
 const __dirname = path.resolve();
 
 const userRouter = express.Router();
@@ -192,37 +194,65 @@ userRouter.put("/profile", protect, async (req, res) => {
     });
 });
 
-/**
- * GET ALL USERS by ADMIN
- * SWAGGER SETUP: no
- */
+// userRouter.get(
+//     "/",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const dateOrderFilter = validateConstants(userQueryParams, "date", req.query.dateOrder);
+//         const statusFilter = validateConstants(userQueryParams, "status", req.query.status);
+//         const users = await User.find({ ...statusFilter })
+//             .sort({ ...dateOrderFilter })
+//             .select("-password");
+//         res.status(200);
+//         res.json(users);
+//     })
+// );
+
 userRouter.get(
     "/",
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-        const users = await User.find({ isDisabled: false }).select({ cart: 0 });
+        const dateOrderFilter = validateConstants(userQueryParams, "date", req.query.dateOrder);
+        const statusFilter = validateConstants(userQueryParams, "status", req.query.status);
+        const users = await User.find({ ...statusFilter }).sort({ ...dateOrderFilter });
         res.status(200);
         res.json(users);
     })
 );
 
-//Admin get all disabled users
-userRouter.get(
-    "/disabled",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const users = await User.find({ isDisabled: true }).select({ cart: 0 });
-        if (users.length != 0) {
-            res.status(200);
-            res.json(users);
-        } else {
-            res.status(204);
-            res.json({ message: "No users are disabled" });
-        }
-    })
-);
+// /**
+//  * GET ALL USERS by ADMIN
+//  * SWAGGER SETUP: no
+//  */
+// userRouter.get(
+//     "/",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const users = await User.find({ isDisabled: false }).select({ cart: 0 });
+//         res.status(200);
+//         res.json(users);
+//     })
+// );
+
+// //Admin get all disabled users
+// userRouter.get(
+//     "/disabled",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const users = await User.find({ isDisabled: true }).select({ cart: 0 });
+//         if (users.length != 0) {
+//             res.status(200);
+//             res.json(users);
+//         } else {
+//             res.status(204);
+//             res.json({ message: "No users are disabled" });
+//         }
+//     })
+// );
 
 /**
  * GET ALL USERS by ADMIN
