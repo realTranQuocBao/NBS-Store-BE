@@ -2,16 +2,16 @@ const productQueryParams = {
     price: {
         asc: { price: "asc" },
         desc: { price: "desc" },
-        default: { price: "asc" }
+        default: {}
     },
     date: {
         newest: { createdAt: "desc" },
         latest: { createdAt: "asc" },
-        default: { createdAt: "desc" }
+        default: {}
     },
     totalSales: {
         true: { totalSales: "desc" },
-        default: { totalSales: "desc" }
+        default: {}
     },
     status: {
         disabled: { isDisabled: true },

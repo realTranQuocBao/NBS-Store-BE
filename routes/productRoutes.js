@@ -86,7 +86,7 @@ productRouter.get(
         const dateOrderFilter = validateConstants(productQueryParams, "date", req.query.dateOrder);
         const priceOrderFilter = validateConstants(productQueryParams, "price", req.query.priceOrder);
         const bestSellerFilter = validateConstants(productQueryParams, "totalSales", req.query.bestSeller);
-        const sortBy = { ...bestSellerFilter, ...dateOrderFilter, ...priceOrderFilter };
+        const sortBy = { ...bestSellerFilter, ...priceOrderFilter, ...dateOrderFilter };
         let statusFilter;
         if (!req.user || req.user.isAdmin == false) {
             statusFilter = validateConstants(productQueryParams, "status", "default");
