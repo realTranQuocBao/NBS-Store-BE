@@ -5,10 +5,8 @@ import Category from "../models/CategoryModel.js";
 import Order from "../models/OrderModel.js";
 import Cart from "../models/CartModel.js";
 import Comment from "../models/CommentModel.js";
-import { admin, protect } from "./../middleware/AuthMiddleware.js";
+import { admin, protect, optional } from "./../middleware/AuthMiddleware.js";
 import { productQueryParams, validateConstants } from "../constants/searchConstants.js";
-import User from "../models/UserModel.js";
-import mongoose from "mongoose";
 
 const productRouter = express.Router();
 
@@ -25,7 +23,7 @@ productRouter.post(
     admin,
     expressAsyncHandler(async (req, res) => {
         const { name, price, description, image, countInStock, category } = req.body;
-        const isExist = await Product.findOne({ name: name, isDisabled: false });
+        const isExist = await Product.findOne({ name: name });
         if (isExist) {
             res.status(400);
             throw new Error("Product name already exist");
@@ -82,13 +80,20 @@ productRouter.post(
 
 productRouter.get(
     "/",
+    optional,
     expressAsyncHandler(async (req, res) => {
         const pageSize = Number(req.query.pageSize) || 20; //EDIT HERE
         const page = Number(req.query.pageNumber) || 1;
         const dateOrderFilter = validateConstants(productQueryParams, "date", req.query.dateOrder);
         const priceOrderFilter = validateConstants(productQueryParams, "price", req.query.priceOrder);
         const bestSellerFilter = validateConstants(productQueryParams, "totalSales", req.query.bestSeller);
-        const sortBy = { ...bestSellerFilter, ...dateOrderFilter, ...priceOrderFilter };
+        const sortBy = { ...bestSellerFilter, ...priceOrderFilter, ...dateOrderFilter };
+        let statusFilter;
+        if (!req.user || req.user.isAdmin == false) {
+            statusFilter = validateConstants(productQueryParams, "status", "default");
+        } else if (req.user.isAdmin) {
+            statusFilter = validateConstants(productQueryParams, "status", req.query.status);
+        }
         const keyword = req.query.keyword
             ? {
                 name: {
@@ -112,14 +117,13 @@ productRouter.get(
         const categoryFilter = categoryIds ? { category: categoryIds } : {};
         //(categoryFilter);
         const count = await Product.countDocuments({ ...keyword, ...categoryFilter, isDisabled: false });
-
         //Check if product match keyword
         if (count == 0) {
             res.status(204);
             throw new Error("No products found for this keyword");
         }
         //else
-        const products = await Product.find({ ...keyword, ...categoryFilter, isDisabled: false })
+        const products = await Product.find({ ...keyword, ...categoryFilter, ...statusFilter })
             .limit(pageSize)
             .skip(pageSize * (page - 1))
             .sort(sortBy)
@@ -128,37 +132,37 @@ productRouter.get(
     })
 );
 
-/**
- * Read: ADMIN GET ALL PRODUCTS
- * (not search & pegination)
- * SWAGGER SETUP: ok
- */
-productRouter.get(
-    "/all",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const products = await Product.find({ isDisabled: false }).sort({ _id: -1 });
-        res.json(products);
-    })
-);
+// /**
+//  * Read: ADMIN GET ALL PRODUCTS
+//  * (not search & pegination)
+//  * SWAGGER SETUP: ok
+//  */
+// productRouter.get(
+//     "/all",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const products = await Product.find({ isDisabled: false }).sort({ _id: -1 });
+//         res.json(products);
+//     })
+// );
 
-//Admin get all disabled products
-productRouter.get(
-    "/disabled",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const products = await Product.find({ isDisabled: true });
-        if (products.length != 0) {
-            res.status(200);
-            res.json(products);
-        } else {
-            res.status(204);
-            res.json({ message: "No products are disabled" });
-        }
-    })
-);
+// //Admin get all disabled products
+// productRouter.get(
+//     "/disabled",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const products = await Product.find({ isDisabled: true });
+//         if (products.length != 0) {
+//             res.status(200);
+//             res.json(products);
+//         } else {
+//             res.status(204);
+//             res.json({ message: "No products are disabled" });
+//         }
+//     })
+// );
 
 /**
  * Read: GET A PRODUCT DETAIL
@@ -330,11 +334,11 @@ productRouter.patch(
             res.status(404);
             throw new Error("Product not found");
         }
-        const duplicatedProduct = await Product.findOne({ name: product.name, isDisabled: false });
-        if (duplicatedProduct) {
-            res.status(400);
-            throw new Error("Restore this product will result in duplicated product name");
-        }
+        // const duplicatedProduct = await Product.findOne({ name: product.name, isDisabled: false });
+        // if (duplicatedProduct) {
+        //     res.status(400);
+        //     throw new Error("Restore this product will result in duplicated product name");
+        // }
         product.isDisabled = false;
         const restoredProduct = await Product.findOneAndUpdate(
             { _id: product._id },
@@ -342,21 +346,21 @@ productRouter.patch(
             { new: true }
         );
         //restore comments
-        const comments = await Comment.find({
-            product: restoredProduct._id,
-            isDisabled: true
-        }).populate("user product replies.user replies.product");
-        for (const comment of comments) {
-            if (comment.product._id.toString() === restoredProduct._id.toString() && comment.isDisabled == true) {
-                comment.isDisabled = comment.user.isDisabled || comment.product.isDisabled || false;
-            }
-            for (const reply of comment.replies) {
-                if (reply.product._id.toString() === restoredProduct._id.toString() && reply.isDisabled == true) {
-                    reply.isDisabled = reply.user.isDisabled || reply.product.isDisabled || false;
-                }
-            }
-            await comment.save();
-        }
+        // const comments = await Comment.find({
+        //     product: restoredProduct._id,
+        //     isDisabled: true
+        // }).populate("user product replies.user replies.product");
+        // for (const comment of comments) {
+        //     if (comment.product._id.toString() === restoredProduct._id.toString() && comment.isDisabled == true) {
+        //         comment.isDisabled = comment.user.isDisabled || comment.product.isDisabled || false;
+        //     }
+        //     for (const reply of comment.replies) {
+        //         if (reply.product._id.toString() === restoredProduct._id.toString() && reply.isDisabled == true) {
+        //             reply.isDisabled = reply.user.isDisabled || reply.product.isDisabled || false;
+        //         }
+        //     }
+        //     await comment.save();
+        // }
         res.status(200);
         res.json(restoredProduct);
     })

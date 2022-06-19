@@ -1,8 +1,9 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
+import { admin, protect, optional } from "../middleware/AuthMiddleware.js";
 import Category from "../models/CategoryModel.js";
 import Product from "../models/ProductModel.js";
+import { categoryQueryParams, commentQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 const categoryRouter = express.Router();
 
@@ -35,42 +36,60 @@ categoryRouter.post(
     })
 );
 
-//Admin get all categories
-categoryRouter.get(
-    "/all",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const categories = await Category.find({ isDisabled: false }).sort({ _id: -1 });
-        res.json(categories);
-    })
-);
-
-//Admin get all disabled categories
-categoryRouter.get(
-    "/disabled",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const categories = await Category.find({ isDisabled: true });
-        if (categories.length != 0) {
-            res.status(200);
-            res.json(categories);
-        } else {
-            res.status(204);
-            res.json({ message: "No categories are disabled" });
-        }
-    })
-);
-
-//User, non-user get all catgories
 categoryRouter.get(
     "/",
+    optional,
     expressAsyncHandler(async (req, res) => {
-        const categories = await Category.find({ isDisabled: false }).sort({ _id: -1 });
+        const dateOrderFilter = validateConstants(categoryQueryParams, "date", req.query.dateOrder);
+        let statusFilter;
+        if (!req.user || req.user.isAdmin == false) {
+            console.log("here");
+            statusFilter = validateConstants(categoryQueryParams, "status", "default");
+        } else if (req.user.isAdmin) {
+            statusFilter = validateConstants(categoryQueryParams, "status", req.query.status);
+        }
+        const categories = await Category.find({ ...statusFilter }).sort({ ...dateOrderFilter });
+        res.status(200);
         res.json(categories);
     })
 );
+
+// //Admin get all categories
+// categoryRouter.get(
+//     "/all",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const categories = await Category.find({ isDisabled: false }).sort({ _id: -1 });
+//         res.json(categories);
+//     })
+// );
+
+// //Admin get all disabled categories
+// categoryRouter.get(
+//     "/disabled",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const categories = await Category.find({ isDisabled: true });
+//         if (categories.length != 0) {
+//             res.status(200);
+//             res.json(categories);
+//         } else {
+//             res.status(204);
+//             res.json({ message: "No categories are disabled" });
+//         }
+//     })
+// );
+
+// //User, non-user get all catgories
+// categoryRouter.get(
+//     "/",
+//     expressAsyncHandler(async (req, res) => {
+//         const categories = await Category.find({ isDisabled: false }).sort({ _id: -1 });
+//         res.json(categories);
+//     })
+// );
 
 //Admin udpate category
 categoryRouter.put(

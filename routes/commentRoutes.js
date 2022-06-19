@@ -16,16 +16,9 @@ commentRouter.post(
     expressAsyncHandler(async (req, res) => {
         const productId = req.body.productId || null;
         const content = req.body.content;
-        const userId = req.user._id;
         const parentCommentId = req.body.parentCommentId;
-        //check if user and comment is valid
-        const findUser = User.findOne({ _id: userId, isDisabled: false });
-        const findProduct = Product.findOne({ _id: productId, isDisabled: false });
-        let [existedUser, existedProduct] = await Promise.all([findUser, findProduct]);
-        if (!existedUser) {
-            res.status(400);
-            throw new Error("Invalid user id");
-        }
+        //check if comment is valid
+        const existedProduct = await Product.findOne({ _id: productId, isDisabled: false });
         if (!existedProduct) {
             res.status(400);
             throw new Error("Invalid product id");
@@ -33,7 +26,7 @@ commentRouter.post(
         //create new comment
         let savedComment;
         const comment = new Comment({
-            user: userId,
+            user: req.user._id,
             product: productId,
             content,
             parentComment: parentCommentId
@@ -78,7 +71,7 @@ commentRouter.get(
     expressAsyncHandler(async (req, res) => {
         const dateOrderFilter = validateConstants(commentQueryParams, "date", req.query.dateOrder);
         const statusFilter = validateConstants(commentQueryParams, "status", req.query.status);
-        let comments = await Comment.find({ ...statusFilter })
+        const comments = await Comment.find({ ...statusFilter })
             .sort({ ...dateOrderFilter })
             .populate("user replies.user");
         res.status(200);

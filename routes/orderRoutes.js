@@ -5,6 +5,8 @@ import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import Order from "./../models/OrderModel.js";
 import Product from "../models/ProductModel.js";
 import Cart from "../models/CartModel.js";
+import { orderQueryParams, validateConstants } from "../constants/searchConstants.js";
+
 const orderRouter = express.Router();
 
 // CRUD
@@ -115,45 +117,63 @@ orderRouter.post(
     })
 );
 
-/**
- * Read: ADMIN GET ALL ORDERS
- */
 orderRouter.get(
-    "/all",
+    "/",
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-        //await Order.updateMany({}, { $set: { isDisabled: false } }, {multi: true});
-        const orders = await Order.find({ isDisabled: false }).sort({ _id: -1 }).populate("user", "id name email");
+        const dateOrderFilter = validateConstants(orderQueryParams, "date", req.query.dateOrder);
+        const statusFilter = validateConstants(orderQueryParams, "status", req.query.status);
+        const orders = await Order.find({ ...statusFilter })
+            .sort({ ...dateOrderFilter })
+            .populate("user", "-password");
+        res.status(200);
         res.json(orders);
     })
 );
 
-//Admin get all disabled orders
-orderRouter.get(
-    "/disabled",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const orders = await Order.find({ isDisabled: true });
-        if (orders.length != 0) {
-            res.status(200);
-            res.json(orders);
-        } else {
-            res.status(204);
-            res.json({ message: "No orders are disabled" });
-        }
-    })
-);
+/**
+ * Read: ADMIN GET ALL ORDERS
+ */
+// orderRouter.get(
+//     "/all",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         //await Order.updateMany({}, { $set: { isDisabled: false } }, {multi: true});
+//         const orders = await Order.find({ isDisabled: false }).sort({ _id: -1 }).populate("user", "-password");
+//         res.json(orders);
+//     })
+// );
+
+// //Admin get all disabled orders
+// orderRouter.get(
+//     "/disabled",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const orders = await Order.find({ isDisabled: true });
+//         if (orders.length != 0) {
+//             res.status(200);
+//             res.json(orders);
+//         } else {
+//             res.status(204);
+//             res.json({ message: "No orders are disabled" });
+//         }
+//     })
+// );
 
 /**
  * Read: USER LOGIN ORDERS
  */
 orderRouter.get(
-    "/",
+    "/ordered",
     protect,
     expressAsyncHandler(async (req, res) => {
-        const orders = await Order.find({ user: req.user._id, isDisabled: false }).sort({ _id: -1 });
+        const dateOrderFilter = validateConstants(orderQueryParams, "date", req.query.dateOrder);
+        const orders = await Order.find({ user: req.user._id, isDisabled: false })
+            .sort({ ...dateOrderFilter })
+            .populate("user", "-password");
         res.json(orders);
     })
 );
@@ -166,7 +186,7 @@ orderRouter.get(
     protect,
     expressAsyncHandler(async (req, res) => {
         const orderId = req.params.id || null;
-        const order = await Order.findOne({ _id: orderId, isDisabled: false }).populate("user", "name email");
+        const order = await Order.findOne({ _id: orderId, isDisabled: false }).populate("user", "-password");
         if (!order) {
             res.status(404);
             throw new Error("Order Not Found");
