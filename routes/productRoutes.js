@@ -216,7 +216,7 @@ productRouter.get(
  * SWAGGER SETUP: ok
  */
 productRouter.post(
-    "/:id/rating",
+    "/:id/review",
     protect,
     expressAsyncHandler(async (req, res, next) => {
         const { rating, reviewContent } = req.body;
@@ -236,7 +236,7 @@ productRouter.post(
         }, 0);
         if (totalOrdered <= totalReviewed) {
             res.status(400);
-            throw new Error("Product already rated");
+            throw new Error("Product already reviewed");
         }
         //.
         //else
@@ -253,7 +253,7 @@ productRouter.post(
             product.numReviews;
         await product.save();
         res.status(201);
-        res.json({ message: "Added rating" });
+        res.json({ message: "Added review" });
     })
 );
 
