@@ -120,10 +120,14 @@ orderRouter.post(
 orderRouter.get(
     "/",
     protect,
-    admin,
     expressAsyncHandler(async (req, res) => {
         const dateOrderFilter = validateConstants(orderQueryParams, "date", req.query.dateOrder);
-        const statusFilter = validateConstants(orderQueryParams, "status", req.query.status);
+        let statusFilter;
+        if (req.user.isAdmin) {
+            statusFilter = validateConstants(orderQueryParams, "status", req.query.status);
+        } else {
+            statusFilter = validateConstants(orderQueryParams, "status", "default");
+        }
         const orders = await Order.find({ ...statusFilter })
             .sort({ ...dateOrderFilter })
             .populate("user", "-password");
