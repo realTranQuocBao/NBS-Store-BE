@@ -116,6 +116,9 @@ paths:
                     description: total product in 1 page
                     items:
                       $ref: '#/components/schemas/Product'
+                  total:
+                    type: number
+                    description: total products                   
         # '204':
         #   description: No products found for this keyword
         #   content:
@@ -2627,8 +2630,7 @@ components:
       type: object
       properties:
         product: 
-          type: string
-          description: Cart item product id
+          $ref: '#/components/schemas/Product'
         qty: 
           type: number
           description: Cart item quantity
