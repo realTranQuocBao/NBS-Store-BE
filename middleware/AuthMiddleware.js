@@ -45,7 +45,8 @@ const optional = expressAsyncHandler(async (req, res, next) => {
                 const userId = decoded.id || null;
                 req.user = await User.findOne({ _id: userId, isDisabled: false }).select("-password");
             } catch (error) {
-                next();
+                res.status(401);
+                throw new Error("Not authorized, token failed");
             }
         }
         next();
