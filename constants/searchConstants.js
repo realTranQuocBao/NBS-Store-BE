@@ -92,8 +92,7 @@ const producerQueryParams = {
 };
 
 const validateConstants = function (reference, constant, constantField) {
-    constant = constant.trim().toLowerCase();
-    constantField = constantField.trim().toLowerCase();
+    constantField = constantField ? constantField.toString().trim().toLowerCase() : "";
     return reference[constant].hasOwnProperty(constantField)
         ? reference[constant][constantField]
         : reference[constant]["default"];
