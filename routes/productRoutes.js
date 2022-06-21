@@ -110,13 +110,14 @@ productRouter.get(
         }
         let categoryIds;
         if (categoryName == "All") {
-            categoryIds = await Category.find({ isDisabled: false }).select({ _id: 1 });
+            categoryIds = await Category.find({ ...statusFilter }).select({ _id: 1 });
         } else {
-            categoryIds = await Category.find({ name: categoryName, isDisabled: false }).select({ _id: 1 });
+            categoryIds = await Category.find({ name: categoryName, ...statusFilter }).select({ _id: 1 });
         }
         const categoryFilter = categoryIds ? { category: categoryIds } : {};
         //(categoryFilter);
-        const count = await Product.countDocuments({ ...keyword, ...categoryFilter, isDisabled: false });
+        console.log(categoryFilter);
+        const count = await Product.countDocuments({ ...keyword, ...categoryFilter, ...statusFilter });
         //Check if product match keyword
         if (count == 0) {
             res.status(204);
@@ -128,7 +129,7 @@ productRouter.get(
             .skip(pageSize * (page - 1))
             .sort(sortBy)
             .populate("category", "name");
-        res.json({ products, page, pages: Math.ceil(count / pageSize) });
+        res.json({ products, page, pages: Math.ceil(count / pageSize), total: count });
     })
 );
 

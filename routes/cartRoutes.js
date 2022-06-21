@@ -13,7 +13,7 @@ cartRouter.get(
     protect,
     expressAsyncHandler(async (req, res) => {
         const userId = req.user._id || null;
-        const cart = await Cart.findOne({ user: userId });
+        const cart = await Cart.findOne({ user: userId }).populate("cartItems.product");
         if (!cart) {
             res.status(404);
             throw new Error("Cart not found");
@@ -60,7 +60,6 @@ cartRouter.patch(
             throw new Error("Quantity must be greater than 0");
         }
         let addedItemIndex = cart.cartItems.findIndex((item) => item.product.toString() == productId.toString());
-        let statusCode;
         if (addedItemIndex !== -1) {
             cart.cartItems[addedItemIndex].qty += qty;
         } else {
@@ -76,8 +75,9 @@ cartRouter.patch(
             addedItemIndex = cart.cartItems.push(cartItem) - 1;
         }
         const updatedCart = await cart.save();
+        const returnCart = await Cart.findById(updatedCart._id).populate("cartItems.product");
         res.status(200);
-        res.json(updatedCart.cartItems[addedItemIndex]);
+        res.json(returnCart);
     })
 );
 
@@ -131,8 +131,9 @@ cartRouter.patch(
             }
         }
         const updatedCart = await cart.save();
+        const returnCart = await Cart.findById(updatedCart._id).populate("cartItems.product");
         res.status(200);
-        res.json(updatedCart);
+        res.json(returnCart);
     })
 );
 
