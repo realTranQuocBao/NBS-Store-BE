@@ -40,9 +40,13 @@ const optional = expressAsyncHandler(async (req, res, next) => {
         console.log(req.headers);
         if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
             token = req.headers.authorization.split(" ")[1];
-            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-            const userId = decoded.id || null;
-            req.user = await User.findOne({ _id: userId, isDisabled: false }).select("-password");
+            try {
+                const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+                const userId = decoded.id || null;
+                req.user = await User.findOne({ _id: userId, isDisabled: false }).select("-password");
+            } catch (error) {
+                next();
+            }
         }
         next();
     }
