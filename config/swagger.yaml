@@ -291,6 +291,10 @@ paths:
                   minimum: 1
                   maximum: 5
                   nullable: false
+                reviewContent:
+                  type: string
+                  description: Review content
+                  nullable: true                  
       responses:
         '201':
           description: Success
@@ -2359,14 +2363,14 @@ components:
     Review:
       type: object
       properties:
-        name:
-          type: string
-          description: Reviewed user name
         rating:
           type: integer
           description: User ratings (5-stars rating)
           minimum: 1
           maximum: 5
+        reviewContent:
+          type: string
+          description: Review content          
         user:
           type: string
           description: User ID
