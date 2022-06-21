@@ -116,7 +116,6 @@ productRouter.get(
         }
         const categoryFilter = categoryIds ? { category: categoryIds } : {};
         //(categoryFilter);
-        console.log(categoryFilter);
         const count = await Product.countDocuments({ ...keyword, ...categoryFilter, ...statusFilter });
         //Check if product match keyword
         if (count == 0) {
@@ -175,7 +174,10 @@ productRouter.get(
     expressAsyncHandler(async (req, res) => {
         // console.log("Bảo nè");
         const productId = req.params.id || null;
-        const product = await Product.findOne({ _id: productId, isDisabled: false });
+        const product = await Product.findOne({ _id: productId, isDisabled: false }).populate(
+            "reviews.user",
+            "name avatarUrl"
+        );
         // let product;
         // console.log("new", product);
         // try {
@@ -217,7 +219,7 @@ productRouter.post(
     "/:id/rating",
     protect,
     expressAsyncHandler(async (req, res, next) => {
-        const { rating } = req.body;
+        const { rating, reviewContent } = req.body;
         const productId = req.params.id || null;
         const product = await Product.findOne({ _id: productId, isDisabled: false });
         if (!product) {
@@ -241,6 +243,7 @@ productRouter.post(
         const review = {
             name: req.user.name,
             rating: Number(rating),
+            reviewContent: reviewContent,
             user: req.user._id
         };
         product.reviews.push(review);
