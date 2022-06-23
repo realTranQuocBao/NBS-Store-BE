@@ -11,9 +11,9 @@ const cartRouter = express.Router();
 cartRouter.get(
     "/",
     protect,
-    expressAsyncHandler(async(req, res) => {
+    expressAsyncHandler(async (req, res) => {
         const userId = req.user._id || null;
-        const cart = await Cart.findOne({ user: userId });
+        const cart = await Cart.findOne({ user: userId }).populate("cartItems.product");
         if (!cart) {
             res.status(404);
             throw new Error("Cart not found");
@@ -27,7 +27,7 @@ cartRouter.get(
 cartRouter.post(
     "/",
     protect,
-    expressAsyncHandler(async(req, res) => {
+    expressAsyncHandler(async (req, res) => {
         const userId = req.user._id || null;
         const existedCart = await Cart.findOne({ user: userId });
         if (existedCart) {
@@ -36,18 +36,18 @@ cartRouter.post(
         }
         const newCart = await Cart.create({
             user: userId,
-            cartItems: [],
+            cartItems: []
         });
         res.status(200);
         res.json(newCart);
     })
-); 
+);
 
 //User add to cart
 cartRouter.patch(
     "/add",
     protect,
-    expressAsyncHandler(async(req, res) => {
+    expressAsyncHandler(async (req, res) => {
         const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
@@ -59,12 +59,10 @@ cartRouter.patch(
             res.status(400);
             throw new Error("Quantity must be greater than 0");
         }
-        let addedItemIndex = cart.cartItems.findIndex(item => item.product.toString() == productId.toString());
-        let statusCode;
+        let addedItemIndex = cart.cartItems.findIndex((item) => item.product.toString() == productId.toString());
         if (addedItemIndex !== -1) {
             cart.cartItems[addedItemIndex].qty += qty;
-        }
-        else {
+        } else {
             const product = await Product.findOne({ _id: productId, isDisabled: false });
             if (!product) {
                 res.status(404);
@@ -72,21 +70,22 @@ cartRouter.patch(
             }
             const cartItem = {
                 product: productId,
-                qty: qty,
-            }        
+                qty: qty
+            };
             addedItemIndex = cart.cartItems.push(cartItem) - 1;
         }
         const updatedCart = await cart.save();
+        const returnCart = await Cart.findById(updatedCart._id).populate("cartItems.product");
         res.status(200);
-        res.json(updatedCart.cartItems[addedItemIndex]);
+        res.json(returnCart);
     })
-); 
+);
 
 //User update existed cart item
 cartRouter.patch(
     "/update",
     protect,
-    expressAsyncHandler(async(req, res) => {
+    expressAsyncHandler(async (req, res) => {
         const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
@@ -94,32 +93,29 @@ cartRouter.patch(
             throw new Error("Cart not found");
         }
         const { productId, qty } = req.body;
-        const addedItemIndex = cart.cartItems.findIndex(item => item.product.toString() === productId.toString());
+        const addedItemIndex = cart.cartItems.findIndex((item) => item.product.toString() === productId.toString());
         if (addedItemIndex == -1) {
             throw new Error("Product isn't in cart");
         }
-        else {
-            cart.cartItems[addedItemIndex].qty = qty;
-            if (cart.cartItems[addedItemIndex].qty <= 0) {
-                cart.cartItems.splice(addedItemIndex, 1);
-                await cart.save();
-                res.status(204);
-                res.json({ message: "Product is removed"});
-            }
-            else {
-                const updatedCart = await cart.save();
-                res.status(200);
-                res.json(updatedCart.cartItems[addedItemIndex]);
-            }
+        cart.cartItems[addedItemIndex].qty = qty;
+        if (cart.cartItems[addedItemIndex].qty <= 0) {
+            cart.cartItems.splice(addedItemIndex, 1);
+            await cart.save();
+            res.status(204);
+            res.json({ message: "Product is removed" });
+        } else {
+            const updatedCart = await cart.save();
+            res.status(200);
+            res.json(updatedCart.cartItems[addedItemIndex]);
         }
     })
 );
 
-//User remove selected cart items. 
+//User remove selected cart items.
 cartRouter.patch(
     "/remove",
     protect,
-    expressAsyncHandler(async(req, res) => {
+    expressAsyncHandler(async (req, res) => {
         const userId = req.user._id || null;
         const cart = await Cart.findOne({ user: userId });
         if (!cart) {
@@ -129,15 +125,16 @@ cartRouter.patch(
         //productIds: [productId1, productId2, ...]
         const productIds = req.body.productIds;
         for (const productId of productIds) {
-            let addedItemIndex = cart.cartItems.findIndex(item => item.product.toString() == productId.toString());
+            let addedItemIndex = cart.cartItems.findIndex((item) => item.product.toString() == productId.toString());
             if (addedItemIndex != -1) {
                 cart.cartItems.splice(addedItemIndex, 1);
             }
         }
         const updatedCart = await cart.save();
+        const returnCart = await Cart.findById(updatedCart._id).populate("cartItems.product");
         res.status(200);
-        res.json(updatedCart);
+        res.json(returnCart);
     })
-); 
+);
 
 export default cartRouter;

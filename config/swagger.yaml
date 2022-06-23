@@ -50,8 +50,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     get: #done
-      description: Get a part of products to show on shop client
-      summary: Get a part of products to show on shop client
+      description: Get a part of products to show on shop client (non-user, user, admin)
+      summary: Get a part of products to show on shop client (non-user, user, admin)
       tags:
         - Product
       parameters:
@@ -78,19 +78,25 @@ paths:
           required: false 
           schema:
             type: string
-          description: Sort product by date (newest/latest)
+          description: Sort products by date (newest/latest)
         - in: query
           name: priceOrder
           required: false
           schema: 
             type: string
-          description: Sort product by price (asc/desc)
+          description: Sort products by price (asc/desc)
         - in: query
           name: category
           required: false
           schema:
             type: string
           description: Product category name
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+          description: Sort products by status (disabled/notDisabled/all)        
       responses:
         '200':
           description: Success
@@ -110,41 +116,44 @@ paths:
                     description: total product in 1 page
                     items:
                       $ref: '#/components/schemas/Product'
-        '204':
-          description: No products found for this keyword
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                  total:
+                    type: number
+                    description: total products                   
+        # '204':
+        #   description: No products found for this keyword
+        #   content:
+        #     application/json:
+        #       schema:
+        #         $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /api/v1/product/all: #done
-    get:
-      summary: Return all products of store
-      description: This api requires authorization with token JWT
-      tags:
-        - Product
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+  # /api/v1/product/all: #done
+  #   get:
+  #     summary: Return all products of store
+  #     description: This api requires authorization with token JWT
+  #     tags:
+  #       - Product
+  #     security:
+  #       - bearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: Success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/Product'
+  #       '401':
+  #         description: Unauthorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
   /api/v1/product/{id}: #done
     get: 
       summary: Get matched product with given id (product detail)
@@ -282,6 +291,10 @@ paths:
                   minimum: 1
                   maximum: 5
                   nullable: false
+                reviewContent:
+                  type: string
+                  description: Review content
+                  nullable: true                  
       responses:
         '201':
           description: Success
@@ -413,6 +426,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/product/{id}/comments:
+      get:
+        summary: Get product comments
+        description: Get product comments
+        tags:
+          - Product
+        parameters:
+          - name: id
+            in: path
+            description: Product ID
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Success
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Comment'
+          '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'             
+
   /api/v1/user/login:
     post:
       summary: Logs user into the system
@@ -509,6 +551,19 @@ paths:
       description: Get all users by admin
       tags:
         - User
+      parameters:
+        - in: query
+          name: dateOrder
+          required: false 
+          schema:
+            type: string
+          description: Sort users by date (newest/latest)
+        - in: query
+          name: status
+          required: false
+          schema: 
+            type: string
+          description: Filter users by status (disabled/notDisabled/all)        
       responses:
         '200':
           description: Success
@@ -836,12 +891,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     get:
-      summary: Users get their orders
-      description: Users get their orders
+      summary: Admin get orders
+      description: Admin get orders
       tags:
         - Order
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: dateOrder
+          required: false 
+          schema:
+            type: string
+          description: Sort orders by date (newest/latest)
+        - in: query
+          name: status
+          required: false
+          schema: 
+            type: string
+          description: Filter orders by status (disabled/notDisabled/all)
       responses:
         '200':
           description: Success
@@ -855,14 +923,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /api/v1/order/all:
+  /api/v1/order/ordered:
     get:
-      summary: Get all orders
-      description: Get all orders
+      summary: User get their orders
+      description: User get their orders
       tags:
         - Order
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: dateOrder
+          required: false 
+          schema:
+            type: string
+          description: Sort orders by date (newest/latest)
       responses:
         '200':
           description: Success
@@ -871,53 +946,7 @@ paths:
               schema:
                 type: array
                 items:
-                  allOf:
-                    - type: object
-                      properties:
-                        shippingAddress:
-                          $ref: '#/components/schemas/ShippingAddress'
-                    - type: object
-                      properties:
-                        user:
-                          $ref: '#/components/schemas/OrderedUser'
-                    - type: object
-                      properties:
-                        orderItems:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/OrderItemWithID'
-                    - type: object
-                      properties:
-                        _id: 
-                          type: string
-                          description: Order ID
-                        patmentMethod:
-                          type: string
-                          description: Payment method
-                          default: "Paypal"
-                        taxPrice:
-                          type: number
-                          description: Tax price
-                          default: 0.0
-                        shippingPrice:
-                          type: number
-                          description: Shipping price
-                          default: 0.0         
-                        totalPrice:
-                          type: number
-                          description: Total price
-                          default: 0.0 
-                        isPaid:
-                          type: boolean
-                          description: Is paid yet ?
-                          default: 0.0 
-                    
-        '400':
-          description: No order items
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                    $ref: '#/components/schemas/Order'                 
         '401':
           description: Unauthorized
           content:
@@ -1214,10 +1243,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     get:
-      summary:  User get all categories
-      description: User get all categories 
+      summary:  Get all categories (non-user, user, admin)
+      description: Get all categories (non-user, user, admin)
       tags:
         - Category
+      parameters:
+        - in: query
+          name: dateOrder
+          required: false 
+          schema:
+            type: string
+          description: Sort categories by date (newest/latest)
+        - in: query
+          name: status
+          required: false
+          schema: 
+            type: string
+          description: Filter categories by status (disabled/notDisabled/all) 
       responses:
         '200':
           description: Success
@@ -1227,21 +1269,21 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
-  /api/v1/category/all:
-    get:
-      summary:  Admin get all categories 
-      description: Admin get all categories 
-      tags:
-        - Category
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Category' 
+  # /api/v1/category/all:
+  #   get:
+  #     summary:  Admin get all categories 
+  #     description: Admin get all categories 
+  #     tags:
+  #       - Category
+  #     responses:
+  #       '200':
+  #         description: Success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/Category' 
   /api/v1/category/{id}: 
     put:
       summary: Update exsited category
@@ -1461,14 +1503,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /api/v1/producer/all: 
+  /api/v1/producer/: 
     get:
-      summary:  User get all categories of store
-      description: User get all categories of store
+      summary:  Get all producers (admin)
+      description: Get all producers (admin)
       tags:
         - Producer
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: dateOrder
+          required: false 
+          schema:
+            type: string
+          description: Sort producers by date (newest/latest)
+        - in: query
+          name: status
+          required: false
+          schema: 
+            type: string
+          description: Filter producers by status (disabled/notDisabled/all)           
       responses:
         '200':
           description: Success
@@ -1478,6 +1533,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'                  
   /api/v1/producer/{id}: 
     put:
       summary: Update existed producer
@@ -1852,60 +1913,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Comment'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'        
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Error'  
-  /api/v1/comment/{parentCommentId}/reply: 
+                $ref: '#/components/schemas/Error' 
     get:
-      summary:  User, non-user get comment replies
-      description: User, non-user get comment replies
+      summary:  Non-user, user admin get comments
+      description: Non-user, user admin get comments
       tags:
         - Comment
       parameters:
-        - name: parentCommentId
-          in: path
-          description: Parent Comment Id
-          required: true
+        - in: query
+          name: dateOrder
+          required: false 
           schema:
             type: string
+          description: Sort comments by date (newest/latest)
+        - in: query
+          name: status
+          required: false
+          schema: 
+            type: string
+          description: Filter comment by status (disabled/notDisabled/all)
       responses:
-        '200':
-          description: Success
+        '201':
+          description: Created
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Comment'
+                $ref: '#/components/schemas/Comment'       
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error'                 
   /api/v1/comment/{commentId}: 
     delete:
       summary:  User, admin delete comment
       description: User, admin delete comment
+      security:
+        - bearerAuth: []
       tags:
         - Comment
       parameters:
@@ -1921,9 +1977,16 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Comment'
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized
           content:
@@ -1942,6 +2005,8 @@ paths:
     patch:
       summary:  User, admin change comment
       description: User, admin change comment
+      security:
+        - bearerAuth: []
       tags:
         - Comment
       parameters:
@@ -1972,6 +2037,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comment'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'                  
         '401':
           description: Unauthorized
           content:
@@ -1990,6 +2061,8 @@ paths:
     patch:
       summary:  User, admin disable comment
       description: User, admin disable comment
+      security:
+        - bearerAuth: []      
       tags:
         - Comment
       parameters:
@@ -2008,12 +2081,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comment'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '404':
           description: Not found
           content:
@@ -2021,11 +2088,27 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Error'
+                  $ref: '#/components/schemas/Error'                     
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'                  
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/comment/{commentId}/restore: 
     patch:
       summary:  User, admin restore comment
       description: User, admin restore comment
+      security:
+        - bearerAuth: []            
       tags:
         - Comment
       parameters:
@@ -2044,6 +2127,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Comment'
+        '400':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized
           content:
@@ -2058,7 +2147,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Error'
-  /api/v1/refreshToken:
+  /api/v1/refresh-token/refresh:
     patch:
       summary: User refresh access token
       tags:
@@ -2274,14 +2363,14 @@ components:
     Review:
       type: object
       properties:
-        name:
-          type: string
-          description: Reviewed user name
         rating:
           type: integer
           description: User ratings (5-stars rating)
           minimum: 1
           maximum: 5
+        reviewContent:
+          type: string
+          description: Review content          
         user:
           type: string
           description: User ID
@@ -2545,8 +2634,7 @@ components:
       type: object
       properties:
         product: 
-          type: string
-          description: Cart item product id
+          $ref: '#/components/schemas/Product'
         qty: 
           type: number
           description: Cart item quantity
@@ -2570,6 +2658,37 @@ components:
         __v:
           type: number
           description: Document version key
+    # Comment:
+    #   type: object
+    #   properties:
+    #     _id: 
+    #       type: string
+    #       description: Cart Object id
+    #     user: 
+    #       type: string
+    #       description: User id
+    #     product:
+    #       type: string 
+    #       description: Product object id
+    #     content: 
+    #       type: string
+    #       description: Comment content
+    #     parentComment:
+    #       type: string
+    #       description: Parent comment object id
+    #     replies:
+    #       type: array
+    #       items: 
+    #         $ref: '#/components/schemas/Comment'
+    #       description: Commnet replies
+    #     isDisabled:
+    #       type: boolean
+    #       description: is Disabled or not
+    #     timestamp:
+    #       $ref: '#/components/schemas/Timestamp'
+    #     __v:
+    #       type: number
+    #       description: Document version key
     Comment:
       type: object
       properties:
@@ -2577,8 +2696,7 @@ components:
           type: string
           description: Cart Object id
         user: 
-          type: string
-          description: User id
+          $ref: '#/components/schemas/User'
         product:
           type: string 
           description: Product object id
