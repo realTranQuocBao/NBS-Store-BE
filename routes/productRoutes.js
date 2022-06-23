@@ -82,7 +82,7 @@ productRouter.get(
     "/",
     optional,
     expressAsyncHandler(async (req, res) => {
-        const pageSize = Number(req.query.pageSize) || 9; //EDIT HERE
+        const pageSize = Number(req.query.pageSize) || 20; //EDIT HERE
         const page = Number(req.query.pageNumber) || 1;
         const dateOrderFilter = validateConstants(productQueryParams, "date", req.query.dateOrder);
         const priceOrderFilter = validateConstants(productQueryParams, "price", req.query.priceOrder);
@@ -96,11 +96,11 @@ productRouter.get(
         }
         const keyword = req.query.keyword
             ? {
-                  name: {
-                      $regex: req.query.keyword,
-                      $options: "i"
-                  }
-              }
+                name: {
+                    $regex: req.query.keyword,
+                    $options: "i"
+                }
+            }
             : {}; // TODO: return cannot find product
 
         //Check if category existed
