@@ -5,6 +5,8 @@ import { admin, protect } from "./../middleware/AuthMiddleware.js";
 import Order from "./../models/OrderModel.js";
 import Product from "../models/ProductModel.js";
 import Cart from "../models/CartModel.js";
+import { orderQueryParams, validateConstants } from "../constants/searchConstants.js";
+
 const orderRouter = express.Router();
 
 // CRUD
@@ -54,6 +56,7 @@ orderRouter.post(
     expressAsyncHandler(async (req, res, next) => {
         const { orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice } =
             req.body;
+        const orderItemsId = orderItems.map((orderItem) => orderItem.product);
         if (orderItems && orderItems.length === 0) {
             res.status(400);
             throw new Error("No order items");
@@ -82,27 +85,32 @@ orderRouter.post(
                     totalPrice
                 });
                 for (const orderItem of orderItems) {
-                    const product = await Product.findOne({ _id: orderItem.product, isDisabled: false }).session(
-                        session
-                    );
-                    if (product.countInStock < orderItem.qty) {
+                    const orderedProduct = await Product.findOneAndUpdate(
+                        { _id: orderItem.product, isDisabled: false, countInStock: { $gte: orderItem.qty } },
+                        { $inc: { countInStock: -orderItem.qty, totalSales: +orderItem.qty } },
+                        { new: true }
+                    ).session(session);
+                    if (!orderedProduct) {
                         await session.abortTransaction();
                         res.status(400);
                         throw new Error("One or more product order quantity exceed available quantity");
                     }
-                    let cartItemIndex = cart.cartItems.findIndex(
+                    /* let cartItemIndex = cart.cartItems.findIndex(
                         (cartItem) => cartItem.product.toString() == orderItem.product.toString()
                     );
                     if (cartItemIndex !== -1) {
                         cart.cartItems.splice(cartItemIndex, 1);
-                    }
-                    await Product.findOneAndUpdate(
-                        { _id: orderItem.product, isDisabled: false },
-                        { $inc: { countInStock: -orderItem.qty, totalSales: +orderItem.qty } },
-                        { new: true }
-                    ).session(session);
+                    } */
                 }
-                await cart.save();
+                const updatedCart = await Cart.findOneAndUpdate(
+                    { user: req.user._id },
+                    { $pull: { cartItems: { product: { $in: orderItemsId } } } }
+                );
+                if (!updatedCart) {
+                    await session.abortTransaction();
+                    res.status(500);
+                    throw new Error("Removing ordered items from cart failed");
+                }
                 const createdOrder = await order.save();
                 res.status(201);
                 res.json(createdOrder);
@@ -115,45 +123,63 @@ orderRouter.post(
     })
 );
 
-/**
- * Read: ADMIN GET ALL ORDERS
- */
 orderRouter.get(
-    "/all",
+    "/",
     protect,
     admin,
     expressAsyncHandler(async (req, res) => {
-        //await Order.updateMany({}, { $set: { isDisabled: false } }, {multi: true});
-        const orders = await Order.find({ isDisabled: false }).sort({ _id: -1 }).populate("user", "id name email");
+        const dateOrderFilter = validateConstants(orderQueryParams, "date", req.query.dateOrder);
+        const statusFilter = validateConstants(orderQueryParams, "status", req.query.status);
+        const orders = await Order.find({ ...statusFilter })
+            .sort({ ...dateOrderFilter })
+            .populate("user", "-password");
+        res.status(200);
         res.json(orders);
     })
 );
 
-//Admin get all disabled orders
-orderRouter.get(
-    "/disabled",
-    protect,
-    admin,
-    expressAsyncHandler(async (req, res) => {
-        const orders = await Order.find({ isDisabled: true });
-        if (orders.length != 0) {
-            res.status(200);
-            res.json(orders);
-        } else {
-            res.status(204);
-            res.json({ message: "No orders are disabled" });
-        }
-    })
-);
+/**
+ * Read: ADMIN GET ALL ORDERS
+ */
+// orderRouter.get(
+//     "/all",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         //await Order.updateMany({}, { $set: { isDisabled: false } }, {multi: true});
+//         const orders = await Order.find({ isDisabled: false }).sort({ _id: -1 }).populate("user", "-password");
+//         res.json(orders);
+//     })
+// );
+
+// //Admin get all disabled orders
+// orderRouter.get(
+//     "/disabled",
+//     protect,
+//     admin,
+//     expressAsyncHandler(async (req, res) => {
+//         const orders = await Order.find({ isDisabled: true });
+//         if (orders.length != 0) {
+//             res.status(200);
+//             res.json(orders);
+//         } else {
+//             res.status(204);
+//             res.json({ message: "No orders are disabled" });
+//         }
+//     })
+// );
 
 /**
  * Read: USER LOGIN ORDERS
  */
 orderRouter.get(
-    "/",
+    "/ordered",
     protect,
     expressAsyncHandler(async (req, res) => {
-        const orders = await Order.find({ user: req.user._id, isDisabled: false }).sort({ _id: -1 });
+        const dateOrderFilter = validateConstants(orderQueryParams, "date", req.query.dateOrder);
+        const orders = await Order.find({ user: req.user._id, isDisabled: false })
+            .sort({ ...dateOrderFilter })
+            .populate("user", "-password");
         res.json(orders);
     })
 );
@@ -166,7 +192,7 @@ orderRouter.get(
     protect,
     expressAsyncHandler(async (req, res) => {
         const orderId = req.params.id || null;
-        const order = await Order.findOne({ _id: orderId, isDisabled: false }).populate("user", "name email");
+        const order = await Order.findOne({ _id: orderId, isDisabled: false }).populate("user", "-password");
         if (!order) {
             res.status(404);
             throw new Error("Order Not Found");

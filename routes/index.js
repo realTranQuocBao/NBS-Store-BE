@@ -6,6 +6,7 @@ import categoryRouter from "./categoryRoutes.js";
 import producerRouter from "./producerRoutes.js";
 import cartRouter from "./cartRoutes.js";
 import commentRouter from "./commentRoutes.js";
+import refreshTokenRouter from "./refreshTokenRoutes.js";
 
 const routes = (app) => {
     app.use("/api/v1/import", ImportData);
@@ -16,6 +17,7 @@ const routes = (app) => {
     app.use("/api/v1/producer", producerRouter);
     app.use("/api/v1/cart", cartRouter);
     app.use("/api/v1/comment", commentRouter);
+    app.use("/api/v1/refresh-token", refreshTokenRouter);
     app.use("/api/v1/config/paypal", (req, res) => {
         res.send(process.env.PAYPAL_CLIENT_ID);
     });
