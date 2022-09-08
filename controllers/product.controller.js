@@ -150,12 +150,12 @@ const getProducts = async (req, res) => {
 
 //Non-user, user, admin get product by id
 const getDetailProductById = async (req, res) => {
-    // console.log("Bảo nè");
     const productId = req.params.id || null;
     const product = await Product.findOne({ _id: productId, isDisabled: false }).populate(
         "reviews.user",
         "name avatarUrl"
     );
+
     // let product;
     // console.log("new", product);
     // try {
@@ -169,6 +169,11 @@ const getDetailProductById = async (req, res) => {
         res.status(404);
         throw new Error("Product not Found");
     }
+
+    // increment Product View counter
+    product.numViews = product.numViews + 1;
+    await product.save();
+
     res.status(200);
     res.json(product);
 };
@@ -335,6 +340,10 @@ const deleteProduct = async (req, res) => {
     res.json({ message: "Product has been deleted" });
 };
 
+// const updatenewfield = async (req, res) => {
+//     await Product.updateMany({}, { numViews: 0 });
+// };
+
 const ProductControler = {
     createProduct,
     getProducts,
@@ -345,6 +354,7 @@ const ProductControler = {
     disableProduct,
     restoreProduct,
     deleteProduct
+    // updatenewfield
 };
 
 export default ProductControler;
