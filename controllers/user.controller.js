@@ -1,17 +1,17 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
 import generateToken from "../utils/generateToken.js";
 import resize from "../utils/resizeImage.js";
-import User from "../models/UserModel.js";
-import Order from "../models/OrderModel.js";
-import Cart from "../models/CartModel.js";
-import Comment from "../models/CommentModel.js";
-import { upload } from "../middleware/UploadMiddleware.js";
+import User from "../models/user.model.js";
+import Order from "../models/order.model.js";
+import Cart from "../models/cart.model.js";
+import Comment from "../models/comment.model.js";
+import { upload } from "../middleware/upload.middleware.js";
 import path from "path";
 import fs from "fs";
 import mongoose from "mongoose";
-import RefreshToken from "../models/RefreshTokenModel.js";
+import RefreshToken from "../models/refreshToken.model.js";
 import { userQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 const __dirname = path.resolve();

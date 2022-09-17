@@ -1,8 +1,8 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect, optional } from "../middleware/AuthMiddleware.js";
-import Category from "../models/CategoryModel.js";
-import Product from "../models/ProductModel.js";
+import { admin, protect, optional } from "../middleware/auth.middleware.js";
+import Category from "../models/category.model.js";
+import Product from "../models/product.model.js";
 import { categoryQueryParams, commentQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 //Admin create new category

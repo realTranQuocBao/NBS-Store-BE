@@ -1,11 +1,11 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import Product from "../models/ProductModel.js";
-import Category from "../models/CategoryModel.js";
-import Order from "../models/OrderModel.js";
-import Cart from "../models/CartModel.js";
-import Comment from "../models/CommentModel.js";
-import { admin, protect, optional } from "../middleware/AuthMiddleware.js";
+import Product from "../models/product.model.js";
+import Category from "../models/category.model.js";
+import Order from "../models/order.model.js";
+import Cart from "../models/cart.model.js";
+import Comment from "../models/comment.model.js";
+import { admin, protect, optional } from "../middleware/auth.middleware.js";
 import { productQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 //Admin create new product

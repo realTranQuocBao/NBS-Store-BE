@@ -1,8 +1,8 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
-import Producer from "../models/ProducerModel.js";
-import Product from "../models/ProductModel.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
+import Producer from "../models/producer.model.js";
+import Product from "../models/product.model.js";
 import { producerQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 //Admin create new producer

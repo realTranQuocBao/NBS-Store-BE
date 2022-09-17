@@ -1,12 +1,12 @@
 import ImportData from "./../ImportData.js";
-import orderRouter from "./orderRoutes.js";
-import productRouter from "./productRoutes.js";
-import userRouter from "./userRoutes.js";
-import categoryRouter from "./categoryRoutes.js";
-import producerRouter from "./producerRoutes.js";
-import cartRouter from "./cartRoutes.js";
-import commentRouter from "./commentRoutes.js";
-import refreshTokenRouter from "./refreshTokenRoutes.js";
+import orderRouter from "./order.routes.js";
+import productRouter from "./product.routes.js";
+import userRouter from "./user.routes.js";
+import categoryRouter from "./category.routes.js";
+import producerRouter from "./producer.routes.js";
+import cartRouter from "./cart.routes.js";
+import commentRouter from "./comment.routes.js";
+import refreshTokenRouter from "./refreshToken.routes.js";
 
 const routes = (app) => {
     app.use("/api/v1/import", ImportData);

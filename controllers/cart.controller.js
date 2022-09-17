@@ -1,9 +1,9 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
-import Cart from "../models/CartModel.js";
-//import User from "../models/CategoryModel.js";
-import Product from "../models/ProductModel.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
+import Cart from "../models/cart.model.js";
+//import User from "../models/category.model.js";
+import Product from "../models/product.model.js";
 
 //User get their cart
 const userGetTheirCart = async (req, res) => {

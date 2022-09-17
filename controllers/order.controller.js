@@ -1,10 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
-import Order from "../models/OrderModel.js";
-import Product from "../models/ProductModel.js";
-import Cart from "../models/CartModel.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
+import Order from "../models/order.model.js";
+import Product from "../models/producer.model.js";
+import Cart from "../models/cart.model.js";
 import { orderQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 // CRUD

@@ -1,32 +1,33 @@
-import Comment from "../models/CommentModel.js";
+import Comment from "../models/comment.model.js";
 
 async function deleteCommentById(commentId) {
     const comment = await Comment.findById(commentId);
     if (!comment) {
-      //throw new Error("Comment not found in deleteCommentById function");
-      return;
+        //throw new Error("Comment not found in deleteCommentById function");
+        return;
     }
     //delete reply
     for (const reply of comment.replies) {
-      deleteCommentById(reply._id);
+        deleteCommentById(reply._id);
     }
     //delete this comment
     return await Comment.findByIdAndDelete(commentId, { new: true });
-  }
-  
+}
+
 async function deleteReplyById(replyId) {
     const comment = await Comment.findById(replyId);
     if (!comment) {
-      return;
+        return;
     }
     //delete reply
     for (const reply of comment.replies) {
-      deleteReplyById(reply._id);
+        deleteReplyById(reply._id);
     }
     //unlink parent comment
     const updatedParentComment = await Comment.findOneAndUpdate(
-      { _id: comment.parentComment },
-      { $pull: { replies: comment._id } },);
+        { _id: comment.parentComment },
+        { $pull: { replies: comment._id } }
+    );
     //delete this reply
     return await Comment.findOneAndDelete({ _id: replyId }, { new: true });
 }
@@ -59,5 +60,4 @@ async function deleteReplyById(replyId) {
   return await Comment.findByIdAndUpdate(commentId, { isDisabled: false }, { new: true });
 } */
 
-
-export {deleteCommentById, deleteReplyById}
+export { deleteCommentById, deleteReplyById };

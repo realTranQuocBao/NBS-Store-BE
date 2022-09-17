@@ -4,36 +4,36 @@ const ProducerSchema = mongoose.Schema(
     {
         name: {
             type: String,
-            required: true,
+            required: true
         },
         code: {
             type: String,
             required: false,
-            default: "",
+            default: ""
         },
         keyword: {
             type: String,
             required: false,
-            default: "",
+            default: ""
         },
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
-            ref: "User",
+            ref: "User"
         },
         updatedBy: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
-            ref: "User",
+            ref: "User"
         },
         isDisabled: {
             type: Boolean,
             required: false,
-            default: false,
-        },
+            default: false
+        }
     },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 

@@ -1,9 +1,9 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
 import generateToken from "../utils/generateToken.js";
-import RefreshToken from "../models/RefreshTokenModel.js";
-import User from "../models/UserModel.js";
+import RefreshToken from "../models/refreshToken.model.js";
+import User from "../models/user.model.js";
 
 //get all refresh tokens (test-only api)
 const getAllRefreshTokenForTest = async (req, res) => {

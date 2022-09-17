@@ -1,10 +1,10 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
 import * as helpers from "../constants/helperFunctions.js";
-import Comment from "../models/CommentModel.js";
-import User from "../models/UserModel.js";
-import Product from "../models/ProductModel.js";
+import Comment from "../models/comment.model.js";
+import User from "../models/user.model.js";
+import Product from "../models/product.model.js";
 import { commentQueryParams, validateConstants } from "../constants/searchConstants.js";
 
 //user post comment

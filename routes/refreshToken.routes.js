@@ -1,6 +1,6 @@
 import express from "express";
 import expressAsyncHandler from "express-async-handler";
-import { admin, protect } from "../middleware/AuthMiddleware.js";
+import { admin, protect } from "../middleware/auth.middleware.js";
 import RefreshTokenControler from "../controllers/refreshToken.controller.js";
 
 const refreshTokenRouter = express.Router();
