@@ -16,8 +16,8 @@ const userSchema = mongoose.Schema(
         },
         password: {
             type: String,
-            required: true,
-            select: false
+            required: true
+            // select: false //cannot login
         },
         avatarUrl: {
             type: String,
