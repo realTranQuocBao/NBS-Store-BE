@@ -90,9 +90,14 @@ const updateCategory = async (req, res) => {
         res.status(404);
         throw new Error("Category not Found");
     }
+    // const isExist = await Category.findOne({ name: name, isDisabled: false });
+    // if (isExist) {
+    //     res.status(400);
+    //     throw new Error("Category name is already exist");
+    // }
     category.name = name || category.name;
     category.slug = slug || category.slug;
-    category.updatedBy = req.user._id;
+    category.update = req.user._id;
     const updatedCategory = await category.save();
     res.json(updatedCategory);
 };
