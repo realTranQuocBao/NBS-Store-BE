@@ -14,7 +14,7 @@ import routes from "./routes/index.js";
 dotenv.config();
 connectDatabase();
 const app = express();
-// const swaggerDocument = YAML.load("./config/swagger.yaml");
+const swaggerDocument = YAML.load("./config/swagger.yaml");
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
