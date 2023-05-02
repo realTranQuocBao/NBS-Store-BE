@@ -7,10 +7,10 @@ import UserControler from "../controllers/user.controller.js";
 const userRouter = express.Router();
 
 userRouter.post(
-    "/CreateOrUpdateAvatar/:userId",
-    protect,
-    upload.single("file"),
-    expressAsyncHandler(UserControler.uploadAvatar)
+  "/CreateOrUpdateAvatar/:userId",
+  protect,
+  upload.single("file"),
+  expressAsyncHandler(UserControler.uploadAvatar)
 );
 // userRouter.get("/disabled", protect, admin, expressAsyncHandler());
 userRouter.post("/login", expressAsyncHandler(UserControler.login));
@@ -21,6 +21,7 @@ userRouter.patch("/:id/restore", protect, admin, expressAsyncHandler(UserControl
 userRouter.delete("/:id", protect, admin, expressAsyncHandler(UserControler.deleteUser));
 userRouter.get("/", protect, admin, expressAsyncHandler(UserControler.getUsers));
 userRouter.post("/", expressAsyncHandler(UserControler.register));
+userRouter.patch("/verify-email", expressAsyncHandler(UserControler.verifyEmail));
 // userRouter.get("/", protect, admin, expressAsyncHandler());
 // userRouter.get("/", protect, admin, expressAsyncHandler());
 

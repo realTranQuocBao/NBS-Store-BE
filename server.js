@@ -7,7 +7,7 @@ import connectDatabase from "./config/mongodb.js";
 
 import { notFoundMiddleware, errorhandlingMiddleware } from "./middleware/Errors.js";
 import routes from "./routes/index.js";
-
+import nodemailer from "nodemailer";
 // import swaggerJsdoc from "swagger-jsdoc";
 // import swaggerDocument from "./config/swagger.json";
 
@@ -41,19 +41,19 @@ routes(app);
 //   },
 // };
 app.use(
-    "/thisisnbsstoreswagger",
-    swaggerUiExpress.serve,
-    swaggerUiExpress.setup(swaggerDocument, {
-        swaggerOptions: {
-            docExpansion: "none"
-        }
-    })
+  "/thisisnbsstoreswagger",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup(swaggerDocument, {
+    swaggerOptions: {
+      docExpansion: "none"
+    }
+  })
 );
 
 app.get("/", (req, res) => {
-    res.send(
-        'Welcome to NBS-Store API, <a href="http://nbs-store.quocbaoit.com">Click here to visit the shopping page</a><br>Made by Bảo&Nhựt 24.06.2022'
-    );
+  res.send(
+    'Welcome to NBS-Store API, <a href="http://nbs-store.quocbaoit.com">Click here to visit the shopping page</a><br>Made by Bảo&Nhựt 24.06.2022'
+  );
 });
 
 // error handle

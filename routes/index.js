@@ -7,19 +7,21 @@ import producerRouter from "./producerRoutes.js";
 import cartRouter from "./cartRoutes.js";
 import commentRouter from "./commentRoutes.js";
 import refreshTokenRouter from "./refreshTokenRoutes.js";
+import testRouter from "./testRoutes.js";
 
 const routes = (app) => {
-    app.use("/api/v1/import", ImportData);
-    app.use("/api/v1/order", orderRouter);
-    app.use("/api/v1/product", productRouter);
-    app.use("/api/v1/user", userRouter);
-    app.use("/api/v1/category", categoryRouter);
-    app.use("/api/v1/producer", producerRouter);
-    app.use("/api/v1/cart", cartRouter);
-    app.use("/api/v1/comment", commentRouter);
-    app.use("/api/v1/refresh-token", refreshTokenRouter);
-    app.use("/api/v1/config/paypal", (req, res) => {
-        res.send(process.env.PAYPAL_CLIENT_ID);
-    });
+  app.use("/api/v1/import", ImportData);
+  app.use("/api/v1/order", orderRouter);
+  app.use("/api/v1/product", productRouter);
+  app.use("/api/v1/user", userRouter);
+  app.use("/api/v1/category", categoryRouter);
+  app.use("/api/v1/producer", producerRouter);
+  app.use("/api/v1/cart", cartRouter);
+  app.use("/api/v1/comment", commentRouter);
+  app.use("/api/v1/refresh-token", refreshTokenRouter);
+  app.use("/api/v1/config/paypal", (req, res) => {
+    res.send(process.env.PAYPAL_CLIENT_ID);
+  });
+  app.use("/api/v1/test", testRouter);
 };
 export default routes;

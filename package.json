@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/realTranQuocBao/NBS-Store-BE.git"
   },
-  "author": "Tran Quoc Bao & Pham Xuan Nhut & Nguyen Tri Hai",
+  "author": "Tran Quoc Bao & Pham Xuan Nhut",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/realTranQuocBao/NBS-Store-BE/issues"
@@ -29,6 +29,7 @@
     "mongoose": "^6.2.8",
     "morgan": "^1.10.0",
     "multer": "^1.4.4",
+    "nodemailer": "^6.9.1",
     "sharp": "^0.30.4",
     "swagger-ui-express": "^4.3.0",
     "uuid": "^8.3.2",

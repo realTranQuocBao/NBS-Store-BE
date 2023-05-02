@@ -2,21 +2,22 @@ import mongoose from "mongoose";
 // import bcryptjs from "bcryptjs";
 // import bcrypt from "bcryptjs/dist/bcrypt";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: true
     },
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: true
     },
     password: {
       type: String,
-      required: true,
+      required: true
     },
     avatarUrl: {
       type: String,
@@ -26,16 +27,30 @@ const userSchema = mongoose.Schema(
     isAdmin: {
       type: Boolean,
       required: true,
-      default: false,
+      default: false
+    },
+    emailVerificationToken: {
+      type: String,
+      required: false
+    },
+    isVerified: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    verifyTokenCreateAt: {
+      type: Date,
+      required: false,
+      default: Date.now
     },
     isDisabled: {
       type: Boolean,
       required: true,
-      default: false,
-    },
+      default: false
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
 
@@ -52,6 +67,13 @@ userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
+
+// Code verify
+userSchema.methods.getEmailVerificationToken = function () {
+  const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+  this.emailVerificationToken = crypto.createHash("sha256").update(emailVerificationToken).digest("hex");
+  return emailVerificationToken;
+};
 
 const User = mongoose.model("User", userSchema);
 
