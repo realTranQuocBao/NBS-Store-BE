@@ -163,7 +163,7 @@ const register = async (req, res, next) => {
 
 // Verify email
 const verifyEmail = async (req, res) => {
-  const emailVerificationToken = req.query.emailVerificationToken.toString().trim();
+  const emailVerificationToken = req.query?.emailVerificationToken.toString().trim();
   if (!emailVerificationToken || emailVerificationToken === "") {
     res.status(400);
     throw new Error("Token is not valid");
@@ -234,6 +234,26 @@ const verifyEmail = async (req, res) => {
       statusVerify
     });
   }
+};
+
+// cancel verify email
+const cancelVerifyEmail = async (req, res) => {
+  const emailVerificationToken = req.query?.emailVerificationToken?.toString().trim() || null;
+  if (!emailVerificationToken || emailVerificationToken === "") {
+    res.status(400);
+    throw new Error("Token is not valid");
+  }
+  const user = await User.findOneAndDelete({
+    emailVerificationToken,
+    isVerified: false
+  });
+  if (!user) {
+    res.status(400);
+    throw new Error("The email verification token is not valid or incorrect");
+  }
+
+  res.status(200);
+  res.json("Email verification has been cancelled successfully");
 };
 
 //User get profile
@@ -505,6 +525,7 @@ const UserControler = {
   login,
   register,
   verifyEmail,
+  cancelVerifyEmail,
   getProfile,
   updateProfile,
   getUsers,

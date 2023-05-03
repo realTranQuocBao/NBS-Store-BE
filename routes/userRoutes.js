@@ -22,6 +22,7 @@ userRouter.delete("/:id", protect, admin, expressAsyncHandler(UserControler.dele
 userRouter.get("/", protect, admin, expressAsyncHandler(UserControler.getUsers));
 userRouter.post("/", expressAsyncHandler(UserControler.register));
 userRouter.patch("/verify-email", expressAsyncHandler(UserControler.verifyEmail));
+userRouter.patch("/cancel-verify-email", expressAsyncHandler(UserControler.cancelVerifyEmail));
 // userRouter.get("/", protect, admin, expressAsyncHandler());
 // userRouter.get("/", protect, admin, expressAsyncHandler());
 
