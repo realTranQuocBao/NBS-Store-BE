@@ -14,7 +14,6 @@ testRouter.post(
     };
     try {
       await sendMail(messageOptions);
-      console.log(">>> show data post: ", messageOptions);
       res.status(200);
       res.json("Sending mail successfully");
     } catch (error) {

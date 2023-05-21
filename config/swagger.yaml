@@ -1771,6 +1771,9 @@ paths:
                   type: string
                   description: Cart item quantity
                   default: 1      
+                size:
+                  type: number
+                  description: Cart item size     
       responses:
         '200':
           description: Success
@@ -2334,6 +2337,9 @@ components:
         name:
           type: string
           description: Product ID
+        size:
+          type: number
+          description: Product size
         price:
           type: number
           description: Product price
@@ -2638,6 +2644,10 @@ components:
         qty: 
           type: number
           description: Cart item quantity
+          minimum: 0
+        size: 
+          type: number
+          description: Cart item size
           minimum: 0
         _id: 
           type: string
