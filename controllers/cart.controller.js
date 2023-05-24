@@ -51,11 +51,20 @@ const userAddToCart = async (req, res) => {
     throw new Error("Size must be greater than 0");
   }
   let addedItemIndex = cart.cartItems.findIndex((item) => item.product.toString() == productId.toString());
+
+  // Get product by ID
+  const product = await Product.findOne({ _id: productId, isDisabled: false });
+
   if (addedItemIndex !== -1) {
-    cart.cartItems[addedItemIndex].qty += qty;
+    const checkQty = (cart.cartItems[addedItemIndex].qty += qty);
+    if (checkQty > product.qty) {
+      cart.cartItems[addedItemIndex].qty = qty;
+    } else {
+      cart.cartItems[addedItemIndex].qty += qty;
+    }
     cart.cartItems[addedItemIndex].size = size;
   } else {
-    const product = await Product.findOne({ _id: productId, isDisabled: false });
+    // const product = await Product.findOne({ _id: productId, isDisabled: false });
     if (!product) {
       res.status(404);
       throw new Error("Product not found");
