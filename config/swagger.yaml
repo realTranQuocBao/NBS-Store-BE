@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: npsstore API
+  title: nbsstore API
   description: This is a Backend API of NBSStore
   version: 1.0.0
   termsOfService: http://quocbaoit.com/terms/
